@@ -1,0 +1,170 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+BIN	Makefile	/^BIN=server$/;"	m
+CC	Makefile	/^CC=g++$/;"	m
+CPPFLAGS	Makefile	/^CPPFLAGS=-g -DHAVE_NETINET_IN_H -I. -I\/home\/ian\/\/freeworld_programs\/thrift-0.9.3\/include\/$/;"	m
+GENDIR	Makefile	/^GENDIR=gen-cpp$/;"	m
+GEN_SRCS	Makefile	/^GEN_SRCS=#$(shell ls ${GENDIR}\/*)$/;"	m
+Handler	gen-cpp/Serv.h	/^  typedef ServIf Handler;$/;"	t	class:lj::test::ServIfFactory
+LDFLAGS	Makefile	/^LDFLAGS=-L\/home\/ian\/freeworld_programs\/thrift-0.9.3\/lib $/;"	m
+ProcessFunction	gen-cpp/Serv.h	/^  typedef  void (ServProcessor::*ProcessFunction)(int32_t, ::apache::thrift::protocol::TProtocol*, ::apache::thrift::protocol::TProtocol*, void*);$/;"	t	class:lj::test::ServProcessor
+ProcessMap	gen-cpp/Serv.h	/^  typedef std::map<std::string, ProcessFunction> ProcessMap;$/;"	t	class:lj::test::ServProcessor
+SRCS	Makefile	/^SRCS=$/;"	m
+ServClient	gen-cpp/Serv.h	/^  ServClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {$/;"	f	class:lj::test::ServClient
+ServClient	gen-cpp/Serv.h	/^  ServClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {$/;"	f	class:lj::test::ServClient
+ServClient	gen-cpp/Serv.h	/^class ServClient : virtual public ServIf {$/;"	c	namespace:lj::test
+ServConcurrentClient	gen-cpp/Serv.h	/^  ServConcurrentClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {$/;"	f	class:lj::test::ServConcurrentClient
+ServConcurrentClient	gen-cpp/Serv.h	/^  ServConcurrentClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {$/;"	f	class:lj::test::ServConcurrentClient
+ServConcurrentClient	gen-cpp/Serv.h	/^class ServConcurrentClient : virtual public ServIf {$/;"	c	namespace:lj::test
+ServHandler	server.cpp	/^		ServHandler() {$/;"	f	class:ServHandler
+ServHandler	server.cpp	/^class ServHandler : virtual public ServIf {$/;"	c	file:
+ServIf	gen-cpp/Serv.h	/^class ServIf {$/;"	c	namespace:lj::test
+ServIfFactory	gen-cpp/Serv.h	/^class ServIfFactory {$/;"	c	namespace:lj::test
+ServIfSingletonFactory	gen-cpp/Serv.h	/^  ServIfSingletonFactory(const boost::shared_ptr<ServIf>& iface) : iface_(iface) {}$/;"	f	class:lj::test::ServIfSingletonFactory
+ServIfSingletonFactory	gen-cpp/Serv.h	/^class ServIfSingletonFactory : virtual public ServIfFactory {$/;"	c	namespace:lj::test
+ServMultiface	gen-cpp/Serv.h	/^  ServMultiface() {}$/;"	f	class:lj::test::ServMultiface
+ServMultiface	gen-cpp/Serv.h	/^  ServMultiface(std::vector<boost::shared_ptr<ServIf> >& ifaces) : ifaces_(ifaces) {$/;"	f	class:lj::test::ServMultiface
+ServMultiface	gen-cpp/Serv.h	/^class ServMultiface : virtual public ServIf {$/;"	c	namespace:lj::test
+ServNull	gen-cpp/Serv.h	/^class ServNull : virtual public ServIf {$/;"	c	namespace:lj::test
+ServProcessor	gen-cpp/Serv.h	/^  ServProcessor(boost::shared_ptr<ServIf> iface) :$/;"	f	class:lj::test::ServProcessor
+ServProcessor	gen-cpp/Serv.h	/^class ServProcessor : public ::apache::thrift::TDispatchProcessor {$/;"	c	namespace:lj::test
+ServProcessorFactory	gen-cpp/Serv.h	/^  ServProcessorFactory(const ::boost::shared_ptr< ServIfFactory >& handlerFactory) :$/;"	f	class:lj::test::ServProcessorFactory
+ServProcessorFactory	gen-cpp/Serv.h	/^class ServProcessorFactory : public ::apache::thrift::TProcessorFactory {$/;"	c	namespace:lj::test
+Serv_H	gen-cpp/Serv.h	8;"	d
+Serv_put_args	gen-cpp/Serv.h	/^  Serv_put_args() {$/;"	f	class:lj::test::Serv_put_args
+Serv_put_args	gen-cpp/Serv.h	/^class Serv_put_args {$/;"	c	namespace:lj::test
+Serv_put_pargs	gen-cpp/Serv.h	/^class Serv_put_pargs {$/;"	c	namespace:lj::test
+Serv_put_presult	gen-cpp/Serv.h	/^class Serv_put_presult {$/;"	c	namespace:lj::test
+Serv_put_result	gen-cpp/Serv.h	/^  Serv_put_result() : success(0) {$/;"	f	class:lj::test::Serv_put_result
+Serv_put_result	gen-cpp/Serv.h	/^class Serv_put_result {$/;"	c	namespace:lj::test
+THREAD_NUM	server.cpp	19;"	d	file:
+_Serv_put_args__isset	gen-cpp/Serv.h	/^  _Serv_put_args__isset() : s(false) {}$/;"	f	struct:lj::test::_Serv_put_args__isset
+_Serv_put_args__isset	gen-cpp/Serv.h	/^typedef struct _Serv_put_args__isset {$/;"	s	namespace:lj::test
+_Serv_put_args__isset	gen-cpp/Serv.h	/^} _Serv_put_args__isset;$/;"	t	namespace:lj::test	typeref:struct:lj::test::_Serv_put_args__isset
+_Serv_put_presult__isset	gen-cpp/Serv.h	/^  _Serv_put_presult__isset() : success(false) {}$/;"	f	struct:lj::test::_Serv_put_presult__isset
+_Serv_put_presult__isset	gen-cpp/Serv.h	/^typedef struct _Serv_put_presult__isset {$/;"	s	namespace:lj::test
+_Serv_put_presult__isset	gen-cpp/Serv.h	/^} _Serv_put_presult__isset;$/;"	t	namespace:lj::test	typeref:struct:lj::test::_Serv_put_presult__isset
+_Serv_put_result__isset	gen-cpp/Serv.h	/^  _Serv_put_result__isset() : success(false) {}$/;"	f	struct:lj::test::_Serv_put_result__isset
+_Serv_put_result__isset	gen-cpp/Serv.h	/^typedef struct _Serv_put_result__isset {$/;"	s	namespace:lj::test
+_Serv_put_result__isset	gen-cpp/Serv.h	/^} _Serv_put_result__isset;$/;"	t	namespace:lj::test	typeref:struct:lj::test::_Serv_put_result__isset
+__isset	gen-cpp/Serv.h	/^  _Serv_put_args__isset __isset;$/;"	m	class:lj::test::Serv_put_args
+__isset	gen-cpp/Serv.h	/^  _Serv_put_presult__isset __isset;$/;"	m	class:lj::test::Serv_put_presult
+__isset	gen-cpp/Serv.h	/^  _Serv_put_result__isset __isset;$/;"	m	class:lj::test::Serv_put_result
+__isset	gen-cpp/student_types.h	/^  _student__isset __isset;$/;"	m	class:lj::test::student
+__set_name	gen-cpp/student_types.cpp	/^void student::__set_name(const std::string& val) {$/;"	f	class:lj::test::student
+__set_sage	gen-cpp/student_types.cpp	/^void student::__set_sage(const int16_t val) {$/;"	f	class:lj::test::student
+__set_sno	gen-cpp/student_types.cpp	/^void student::__set_sno(const int32_t val) {$/;"	f	class:lj::test::student
+__set_ssex	gen-cpp/student_types.cpp	/^void student::__set_ssex(const bool val) {$/;"	f	class:lj::test::student
+_student__isset	gen-cpp/student_types.h	/^  _student__isset() : sno(false), name(false), ssex(false), sage(false) {}$/;"	f	struct:lj::test::_student__isset
+_student__isset	gen-cpp/student_types.h	/^typedef struct _student__isset {$/;"	s	namespace:lj::test
+_student__isset	gen-cpp/student_types.h	/^} _student__isset;$/;"	t	namespace:lj::test	typeref:struct:lj::test::_student__isset
+add	gen-cpp/Serv.h	/^  void add(boost::shared_ptr<ServIf> iface) {$/;"	f	class:lj::test::ServMultiface
+dispatchCall	gen-cpp/Serv.cpp	/^bool ServProcessor::dispatchCall(::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, const std::string& fname, int32_t seqid, void* callContext) {$/;"	f	class:lj::test::ServProcessor
+g_port	client.cpp	/^const int g_port = 8123;$/;"	v
+g_port	server.cpp	/^const int g_port = 9090;$/;"	v
+g_student_constants	gen-cpp/student_constants.cpp	/^const studentConstants g_student_constants;$/;"	m	namespace:lj::test	file:
+getHandler	gen-cpp/Serv.h	/^  virtual ServIf* getHandler(const ::apache::thrift::TConnectionInfo&) {$/;"	f	class:lj::test::ServIfSingletonFactory
+getInputProtocol	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {$/;"	f	class:lj::test::ServClient
+getInputProtocol	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getInputProtocol() {$/;"	f	class:lj::test::ServConcurrentClient
+getOutputProtocol	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {$/;"	f	class:lj::test::ServClient
+getOutputProtocol	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> getOutputProtocol() {$/;"	f	class:lj::test::ServConcurrentClient
+getProcessor	gen-cpp/Serv.cpp	/^::boost::shared_ptr< ::apache::thrift::TProcessor > ServProcessorFactory::getProcessor(const ::apache::thrift::TConnectionInfo& connInfo) {$/;"	f	class:lj::test::ServProcessorFactory
+handlerFactory_	gen-cpp/Serv.h	/^  ::boost::shared_ptr< ServIfFactory > handlerFactory_;$/;"	m	class:lj::test::ServProcessorFactory
+iface_	gen-cpp/Serv.h	/^  boost::shared_ptr<ServIf> iface_;$/;"	m	class:lj::test::ServIfSingletonFactory
+iface_	gen-cpp/Serv.h	/^  boost::shared_ptr<ServIf> iface_;$/;"	m	class:lj::test::ServProcessor
+ifaces_	gen-cpp/Serv.h	/^  std::vector<boost::shared_ptr<ServIf> > ifaces_;$/;"	m	class:lj::test::ServMultiface
+iprot_	gen-cpp/Serv.h	/^  ::apache::thrift::protocol::TProtocol* iprot_;$/;"	m	class:lj::test::ServClient
+iprot_	gen-cpp/Serv.h	/^  ::apache::thrift::protocol::TProtocol* iprot_;$/;"	m	class:lj::test::ServConcurrentClient
+lj	gen-cpp/Serv.cpp	/^namespace lj { namespace test {$/;"	n	file:
+lj	gen-cpp/Serv.h	/^namespace lj { namespace test {$/;"	n
+lj	gen-cpp/student_constants.cpp	/^namespace lj { namespace test {$/;"	n	file:
+lj	gen-cpp/student_constants.h	/^namespace lj { namespace test {$/;"	n
+lj	gen-cpp/student_types.cpp	/^namespace lj { namespace test {$/;"	n	file:
+lj	gen-cpp/student_types.h	/^namespace lj { namespace test {$/;"	n
+main	client.cpp	/^int main(int argc, char **argv) {$/;"	f
+main	server.cpp	/^int main(int argc, char **argv) {$/;"	f
+name	gen-cpp/student_types.h	/^  bool name :1;$/;"	m	struct:lj::test::_student__isset
+name	gen-cpp/student_types.h	/^  std::string name;$/;"	m	class:lj::test::student
+operator !=	gen-cpp/Serv.h	/^  bool operator != (const Serv_put_args &rhs) const {$/;"	f	class:lj::test::Serv_put_args
+operator !=	gen-cpp/Serv.h	/^  bool operator != (const Serv_put_result &rhs) const {$/;"	f	class:lj::test::Serv_put_result
+operator !=	gen-cpp/student_types.h	/^  bool operator != (const student &rhs) const {$/;"	f	class:lj::test::student
+operator <<	gen-cpp/student_types.h	/^inline std::ostream& operator<<(std::ostream& out, const student& obj)$/;"	f	namespace:lj::test
+operator =	gen-cpp/student_types.cpp	/^student& student::operator=(const student& other1) {$/;"	f	class:lj::test::student
+operator ==	gen-cpp/Serv.h	/^  bool operator == (const Serv_put_args & rhs) const$/;"	f	class:lj::test::Serv_put_args
+operator ==	gen-cpp/Serv.h	/^  bool operator == (const Serv_put_result & rhs) const$/;"	f	class:lj::test::Serv_put_result
+operator ==	gen-cpp/student_types.h	/^  bool operator == (const student & rhs) const$/;"	f	class:lj::test::student
+oprot_	gen-cpp/Serv.h	/^  ::apache::thrift::protocol::TProtocol* oprot_;$/;"	m	class:lj::test::ServClient
+oprot_	gen-cpp/Serv.h	/^  ::apache::thrift::protocol::TProtocol* oprot_;$/;"	m	class:lj::test::ServConcurrentClient
+piprot_	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;$/;"	m	class:lj::test::ServClient
+piprot_	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> piprot_;$/;"	m	class:lj::test::ServConcurrentClient
+poprot_	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;$/;"	m	class:lj::test::ServClient
+poprot_	gen-cpp/Serv.h	/^  boost::shared_ptr< ::apache::thrift::protocol::TProtocol> poprot_;$/;"	m	class:lj::test::ServConcurrentClient
+printTo	gen-cpp/student_types.cpp	/^void student::printTo(std::ostream& out) const {$/;"	f	class:lj::test::student
+processMap_	gen-cpp/Serv.h	/^  ProcessMap processMap_;$/;"	m	class:lj::test::ServProcessor
+process_put	gen-cpp/Serv.cpp	/^void ServProcessor::process_put(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext)$/;"	f	class:lj::test::ServProcessor
+put	gen-cpp/Serv.cpp	/^int32_t ServClient::put(const student& s)$/;"	f	class:lj::test::ServClient
+put	gen-cpp/Serv.cpp	/^int32_t ServConcurrentClient::put(const student& s)$/;"	f	class:lj::test::ServConcurrentClient
+put	gen-cpp/Serv.h	/^  int32_t put(const student& \/* s *\/) {$/;"	f	class:lj::test::ServNull
+put	gen-cpp/Serv.h	/^  int32_t put(const student& s) {$/;"	f	class:lj::test::ServMultiface
+put	server.cpp	/^		int32_t put(const student& s) {$/;"	f	class:ServHandler
+read	gen-cpp/Serv.cpp	/^uint32_t Serv_put_args::read(::apache::thrift::protocol::TProtocol* iprot) {$/;"	f	class:lj::test::Serv_put_args
+read	gen-cpp/Serv.cpp	/^uint32_t Serv_put_presult::read(::apache::thrift::protocol::TProtocol* iprot) {$/;"	f	class:lj::test::Serv_put_presult
+read	gen-cpp/Serv.cpp	/^uint32_t Serv_put_result::read(::apache::thrift::protocol::TProtocol* iprot) {$/;"	f	class:lj::test::Serv_put_result
+read	gen-cpp/student_types.cpp	/^uint32_t student::read(::apache::thrift::protocol::TProtocol* iprot) {$/;"	f	class:lj::test::student
+recv_put	gen-cpp/Serv.cpp	/^int32_t ServClient::recv_put()$/;"	f	class:lj::test::ServClient
+recv_put	gen-cpp/Serv.cpp	/^int32_t ServConcurrentClient::recv_put(const int32_t seqid)$/;"	f	class:lj::test::ServConcurrentClient
+releaseHandler	gen-cpp/Serv.h	/^  virtual void releaseHandler(ServIf* \/* handler *\/) {}$/;"	f	class:lj::test::ServIfSingletonFactory
+s	gen-cpp/Serv.h	/^  bool s :1;$/;"	m	struct:lj::test::_Serv_put_args__isset
+s	gen-cpp/Serv.h	/^  const student* s;$/;"	m	class:lj::test::Serv_put_pargs
+s	gen-cpp/Serv.h	/^  student s;$/;"	m	class:lj::test::Serv_put_args
+sage	gen-cpp/student_types.h	/^  bool sage :1;$/;"	m	struct:lj::test::_student__isset
+sage	gen-cpp/student_types.h	/^  int16_t sage;$/;"	m	class:lj::test::student
+send_put	gen-cpp/Serv.cpp	/^int32_t ServConcurrentClient::send_put(const student& s)$/;"	f	class:lj::test::ServConcurrentClient
+send_put	gen-cpp/Serv.cpp	/^void ServClient::send_put(const student& s)$/;"	f	class:lj::test::ServClient
+setProtocol	gen-cpp/Serv.h	/^  void setProtocol(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {$/;"	f	class:lj::test::ServClient
+setProtocol	gen-cpp/Serv.h	/^  void setProtocol(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> iprot, boost::shared_ptr< ::apache::thrift::protocol::TProtocol> oprot) {$/;"	f	class:lj::test::ServConcurrentClient
+setProtocol	gen-cpp/Serv.h	/^  void setProtocol(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {$/;"	f	class:lj::test::ServClient
+setProtocol	gen-cpp/Serv.h	/^  void setProtocol(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) {$/;"	f	class:lj::test::ServConcurrentClient
+sno	gen-cpp/student_types.h	/^  bool sno :1;$/;"	m	struct:lj::test::_student__isset
+sno	gen-cpp/student_types.h	/^  int32_t sno;$/;"	m	class:lj::test::student
+ssex	gen-cpp/student_types.h	/^  bool ssex :1;$/;"	m	struct:lj::test::_student__isset
+ssex	gen-cpp/student_types.h	/^  bool ssex;$/;"	m	class:lj::test::student
+student	gen-cpp/student_types.cpp	/^student::student(const student& other0) {$/;"	f	class:lj::test::student
+student	gen-cpp/student_types.h	/^  student() : sno(0), name(), ssex(0), sage(0) {$/;"	f	class:lj::test::student
+student	gen-cpp/student_types.h	/^class student {$/;"	c	namespace:lj::test
+studentConstants	gen-cpp/student_constants.cpp	/^studentConstants::studentConstants() {$/;"	f	class:lj::test::studentConstants
+studentConstants	gen-cpp/student_constants.h	/^class studentConstants {$/;"	c	namespace:lj::test
+student_CONSTANTS_H	gen-cpp/student_constants.h	8;"	d
+student_TYPES_H	gen-cpp/student_types.h	8;"	d
+success	gen-cpp/Serv.h	/^  bool success :1;$/;"	m	struct:lj::test::_Serv_put_presult__isset
+success	gen-cpp/Serv.h	/^  bool success :1;$/;"	m	struct:lj::test::_Serv_put_result__isset
+success	gen-cpp/Serv.h	/^  int32_t success;$/;"	m	class:lj::test::Serv_put_result
+success	gen-cpp/Serv.h	/^  int32_t* success;$/;"	m	class:lj::test::Serv_put_presult
+swap	gen-cpp/student_types.cpp	/^void swap(student &a, student &b) {$/;"	f	namespace:lj::test
+sync_	gen-cpp/Serv.h	/^  ::apache::thrift::async::TConcurrentClientSyncInfo sync_;$/;"	m	class:lj::test::ServConcurrentClient
+test	gen-cpp/Serv.cpp	/^namespace lj { namespace test {$/;"	n	namespace:lj	file:
+test	gen-cpp/Serv.h	/^namespace lj { namespace test {$/;"	n	namespace:lj
+test	gen-cpp/student_constants.cpp	/^namespace lj { namespace test {$/;"	n	namespace:lj	file:
+test	gen-cpp/student_constants.h	/^namespace lj { namespace test {$/;"	n	namespace:lj
+test	gen-cpp/student_types.cpp	/^namespace lj { namespace test {$/;"	n	namespace:lj	file:
+test	gen-cpp/student_types.h	/^namespace lj { namespace test {$/;"	n	namespace:lj
+thrift_server_run	server.cpp	/^int thrift_server_run()$/;"	f
+write	gen-cpp/Serv.cpp	/^uint32_t Serv_put_args::write(::apache::thrift::protocol::TProtocol* oprot) const {$/;"	f	class:lj::test::Serv_put_args
+write	gen-cpp/Serv.cpp	/^uint32_t Serv_put_pargs::write(::apache::thrift::protocol::TProtocol* oprot) const {$/;"	f	class:lj::test::Serv_put_pargs
+write	gen-cpp/Serv.cpp	/^uint32_t Serv_put_result::write(::apache::thrift::protocol::TProtocol* oprot) const {$/;"	f	class:lj::test::Serv_put_result
+write	gen-cpp/student_types.cpp	/^uint32_t student::write(::apache::thrift::protocol::TProtocol* oprot) const {$/;"	f	class:lj::test::student
+~ServIf	gen-cpp/Serv.h	/^  virtual ~ServIf() {}$/;"	f	class:lj::test::ServIf
+~ServIfFactory	gen-cpp/Serv.h	/^  virtual ~ServIfFactory() {}$/;"	f	class:lj::test::ServIfFactory
+~ServIfSingletonFactory	gen-cpp/Serv.h	/^  virtual ~ServIfSingletonFactory() {}$/;"	f	class:lj::test::ServIfSingletonFactory
+~ServMultiface	gen-cpp/Serv.h	/^  virtual ~ServMultiface() {}$/;"	f	class:lj::test::ServMultiface
+~ServNull	gen-cpp/Serv.h	/^  virtual ~ServNull() {}$/;"	f	class:lj::test::ServNull
+~ServProcessor	gen-cpp/Serv.h	/^  virtual ~ServProcessor() {}$/;"	f	class:lj::test::ServProcessor
+~Serv_put_args	gen-cpp/Serv.cpp	/^Serv_put_args::~Serv_put_args() throw() {$/;"	f	class:lj::test::Serv_put_args
+~Serv_put_pargs	gen-cpp/Serv.cpp	/^Serv_put_pargs::~Serv_put_pargs() throw() {$/;"	f	class:lj::test::Serv_put_pargs
+~Serv_put_presult	gen-cpp/Serv.cpp	/^Serv_put_presult::~Serv_put_presult() throw() {$/;"	f	class:lj::test::Serv_put_presult
+~Serv_put_result	gen-cpp/Serv.cpp	/^Serv_put_result::~Serv_put_result() throw() {$/;"	f	class:lj::test::Serv_put_result
+~student	gen-cpp/student_types.cpp	/^student::~student() throw() {$/;"	f	class:lj::test::student
