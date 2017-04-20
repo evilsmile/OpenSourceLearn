@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
     ActiveMQInit();
 
     std::string topic = "ian_topic";
-    std::string brokerUrl = "failover:(tcp://192.168.0.40:61616)";
+    std::string brokerUrl = "failover:(tcp://127.0.0.1:61616)";
 
     TradeSuccSubscribe sc(brokerUrl, topic);
     sc.begin();
