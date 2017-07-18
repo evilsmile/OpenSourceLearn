@@ -74,11 +74,61 @@ int test_pool()
     return 0;
 }
 
+typedef struct {
+    ngx_int_t num;
+    ngx_str_t str;
+    ngx_queue_t q;
+} node_t;
+
+ngx_int_t cmp(const ngx_queue_t* l, const ngx_queue_t* r)
+{
+    node_t* l_n = ngx_queue_data(l, node_t, q);
+    node_t* r_n = ngx_queue_data(r, node_t, q);
+
+    return l_n->num > r_n->num;
+}
+
+int test_queue()
+{
+    int i = 0;
+    ngx_queue_t test_q;
+    ngx_queue_init(&test_q);
+
+    node_t nodes[10];
+    for (i = 0; i < 10; ++i) {
+        nodes[i].num = rand() % 100;
+        ngx_queue_insert_tail(&test_q, &nodes[i].q);
+    }
+
+    ngx_queue_t* iter;
+    printf("before sort: \n");
+    for (i = 0, iter = ngx_queue_head(&test_q);
+            iter != ngx_queue_sentinel(&test_q);
+            ++i, iter = ngx_queue_next(iter)) {
+        node_t *node = ngx_queue_data(iter, node_t, q);
+        printf("node[%d]: %d\n", i, node->num);
+    }
+
+    ngx_queue_sort(&test_q, cmp);
+    printf("after sort: \n");
+    for (i = 0, iter = ngx_queue_head(&test_q);
+            iter != ngx_queue_sentinel(&test_q);
+            ++i, iter = ngx_queue_next(iter)) {
+        node_t *node = ngx_queue_data(iter, node_t, q);
+        printf("node[%d]: %d\n", i, node->num);
+    }
+
+   
+    return 0;
+}
+
 int main()
 {
     int ret = 0;
 
     DOTEST(test_pool());
+
+    DOTEST(test_queue());
 
     return 0;
 }
