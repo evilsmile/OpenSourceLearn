@@ -3,13 +3,14 @@ CFLAGS=-g \
 	   -I../objs/				    \
 	   -I ../src/os/unix/ 			
 
-LDFLAGS+= ../objs/src/core/ngx_palloc.o 	\
-		  ../objs/src/os/unix/ngx_alloc.o   \
-		  ../objs/src/core/ngx_buf.o        \
-		  ../objs/src/core/ngx_list.o        \
-		  ../objs/src/core/ngx_string.o        \
-		  ../objs/src/core/ngx_array.o          \
-		  ../objs/src/core/ngx_radix_tree.o     \
+LDFLAGS+= ../objs/src/core/ngx_palloc.o       \
+		  ../objs/src/os/unix/ngx_alloc.o     \
+		  ../objs/src/core/ngx_buf.o          \
+		  ../objs/src/core/ngx_list.o         \
+		  ../objs/src/core/ngx_string.o       \
+		  ../objs/src/core/ngx_array.o        \
+		  ../objs/src/core/ngx_radix_tree.o   \
+		  ../objs/src/core/ngx_rbtree.o       \
 		  ../objs/src/core/ngx_queue.o
 
 all:test_nginx_api
