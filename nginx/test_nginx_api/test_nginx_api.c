@@ -122,6 +122,57 @@ int test_queue()
     return 0;
 }
 
+int test_array()
+{
+    ngx_pool_t* pool = ngx_create_pool(2048, &ngx_log);
+    EXIT_IF_NULL(pool, "create pool failed.");
+
+    ngx_array_t* array = ngx_array_create(pool, 20, sizeof(ngx_int_t));
+    EXIT_IF_NULL(array, "create array failed.");
+
+    ngx_int_t i;
+    ngx_int_t* elem;
+    for (i = 0; i < 20; ++i) {
+        elem = ngx_array_push(array);
+        *elem = i;
+    }
+    elem = (ngx_int_t*)array->elts;
+    for (i = 0; i < 20; ++i) {
+        printf("array[%d] = %d\n", i, elem[i]);
+    }
+
+    printf("Add 10 elements to array: \n");
+    ngx_int_t n = 10;
+    elem = ngx_array_push_n(array, n);
+    for (i = 0; i < n; ++i) {
+        elem[i] = 20 + i;
+    }
+
+    elem = (ngx_int_t*)array->elts;
+    for (i = 20; i < 20 + n; ++i) {
+        printf("array[%d] =  %d\n", elem[i]);
+    }
+
+    ngx_array_destroy(array);
+
+    printf("ngx_array_init: \n");
+    array = ngx_pcalloc(pool, sizeof(ngx_array_t));
+    ngx_array_init(array, pool, 20, sizeof(ngx_int_t));
+    for (i = 0; i < 20; ++i) {
+        elem = ngx_array_push(array);
+        *elem = rand() % 1000;
+    }
+
+    elem = array->elts;
+    for (i = 0; i < 20; ++i) {
+        printf("array[%d] = %d\n", i, elem[i]);
+    }
+
+    ngx_destroy_pool(pool);
+
+    return 0;
+}
+
 int main()
 {
     int ret = 0;
@@ -129,6 +180,8 @@ int main()
     DOTEST(test_pool());
 
     DOTEST(test_queue());
+
+    DOTEST(test_array());
 
     return 0;
 }
