@@ -173,6 +173,82 @@ int test_array()
     return 0;
 }
 
+void travel_radix_tree(ngx_radix_node_t* root);
+int test_radix_tree()
+{
+    // radix_tree节点实际数据，可以为任意类型
+    ngx_int_t data[64];
+    ngx_int_t i = 0;
+    for (i = 0; i < 64; ++i) {
+        data[i] = i;
+    }
+
+    ngx_pool_t* pool = ngx_create_pool(2048, &ngx_log);
+    EXIT_IF_NULL(pool, "create pool failed.");
+
+    // 全局变量，初始化。radix树操作中会用到
+    ngx_pagesize = getpagesize();
+    printf("pagesize = %d\n", ngx_pagesize);
+
+    // 创建基数树
+    ngx_radix_tree_t* tree = ngx_radix_tree_create(pool, -1);
+    EXIT_IF_NULL(tree, "create radix tree failed.");
+
+    // 注意key与mask
+    // 不能有重复的key
+    int32_t mask = 0xFF000000;
+    int key = 0;
+    // 插入数据
+    for (i = 0; i < 64; ++i) {
+        if (ngx_radix32tree_insert(tree, (i&0xFF)<<24, mask, &data[i]) != NGX_OK) {
+            fprintf(stderr, "insert radix tree failed.\n");
+            return -1;
+        }
+    }
+
+    travel_radix_tree(tree->root);
+    printf("\n");
+
+    ngx_uint_t tkey = (0x30 <<24);
+    ngx_int_t* value = ngx_radix32tree_find(tree, tkey);
+    if (value != NGX_RADIX_NO_VALUE) {
+        printf("find the value: [%d] by key [%#x]\n", *value, tkey);
+    }
+
+    if (NGX_OK == ngx_radix32tree_delete(tree, tkey, mask)) {
+        printf("delete key[%#x] succ\n", tkey);
+    } else {
+        fprintf(stderr, "delete key[%#x] failed\n", tkey);
+    }
+
+    value = ngx_radix32tree_find(tree, tkey);
+    if (value != NGX_RADIX_NO_VALUE) {
+        printf("find the value: %d with the key = %#x\n", *value, tkey);
+    } else {
+        printf("not find value of key[%#x]\n", tkey);
+    }
+
+    printf("after delete key:0x30000000: \n");
+    travel_radix_tree(tree->root);
+    printf("\n");
+
+    return 0;
+}
+
+void travel_radix_tree(ngx_radix_node_t* root) 
+{
+    if (root->left != NULL) {
+        travel_radix_tree(root->left);
+    }
+    if (root->value != NGX_RADIX_NO_VALUE) {
+        ngx_int_t* value = root->value;
+        printf("%d ", *value);
+    }
+    if (root->right != NULL) {
+        travel_radix_tree(root->right);
+    }
+}
+
 int main()
 {
     int ret = 0;
@@ -182,6 +258,8 @@ int main()
     DOTEST(test_queue());
 
     DOTEST(test_array());
+    
+    DOTEST(test_radix_tree());
 
     return 0;
 }
