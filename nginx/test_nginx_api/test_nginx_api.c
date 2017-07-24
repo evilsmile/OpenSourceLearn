@@ -360,6 +360,84 @@ void traverse_rbtree(ngx_rbtree_node_t* root, ngx_rbtree_node_t* sentinel)
                 
 
 ///////////////////////////////////////////////////
+
+static ngx_str_t names[] = {
+    ngx_string("rain"),
+    ngx_string("cloud"),
+    ngx_string("sky")
+};
+
+static char* descs[] = {
+    "rain makes world wet",
+    "cloud is light, and beautiful",
+    "blue sky takes me peace in heart"
+};
+
+int test_hash()
+{
+    ngx_uint_t k;
+    ngx_pool_t* pool;
+
+    ngx_hash_init_t hash_init;
+    ngx_hash_t* hash;
+    ngx_array_t* elements;
+    ngx_hash_key_t* arr_node;
+    char* find;
+    int i;
+    int error = 0;
+
+    ngx_cacheline_size = 32;
+    ngx_str_t str = ngx_string("Heyo");
+    k = ngx_hash_key_lc(str.data, str.len);
+    pool = ngx_create_pool(1024 * 10, &ngx_log);
+    printf("hash key is [%u] \n", k);
+    EXIT_IF_NULL(pool, "create pool failed.");
+
+    hash = (ngx_hash_t*)ngx_pcalloc(pool, sizeof(hash));
+    hash_init.hash = hash;
+    hash_init.key = &ngx_hash_key_lc;
+    hash_init.max_size = 1024 * 10;
+    hash_init.bucket_size = 64;
+    hash_init.name = "test_hash";
+    hash_init.pool = pool;
+    hash_init.temp_pool = NULL;
+
+    // 存放用于hash表初始化的数组
+    elements = ngx_array_create(pool, 32, sizeof(ngx_hash_key_t));
+    EXIT_IF_NULL(elements, "create elements array failed.\n");
+    for (i = 0; i < 3; ++i) {
+        arr_node = (ngx_hash_key_t*)ngx_array_push(elements);
+        arr_node->key = (names[i]);
+        arr_node->key_hash = ngx_hash_key_lc(arr_node->key.data, arr_node->key.len);
+        arr_node->value = (void*)descs[i];
+
+        printf("key: %s, key_hash: %u \n", arr_node->key.data, arr_node->key_hash);
+    }
+
+    // hash表初始化
+    if (ngx_hash_init(&hash_init, (ngx_hash_key_t*)elements->elts, elements->nelts) != NGX_OK) {
+        ngx_destroy_pool(pool);
+        fprintf(stderr, "ngx_hash_init failed.\n");
+        error = -1;
+        goto end;
+    }
+
+    // 查找指定的key
+    k = ngx_hash_key_lc(names[0].data, names[0].len);
+    printf("%s key is %d\n", names[0].data, k);
+    find = (char*)ngx_hash_find(hash, k, (u_char*)names[0].data, names[0].len);
+    if (find) {
+        printf("get desc: %s\n", (char*)find);
+    }
+
+end:
+    ngx_array_destroy(elements);
+    ngx_destroy_pool(pool);
+
+    return error;
+}
+
+///////////////////////////////////////////////////
 int main()
 {
     int ret = 0;
@@ -373,6 +451,8 @@ int main()
     DOTEST(test_radix_tree());
 
     DOTEST(test_rbtree());
+
+    DOTEST(test_hash());
 
     return 0;
 }

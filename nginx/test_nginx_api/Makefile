@@ -11,6 +11,7 @@ LDFLAGS+= ../objs/src/core/ngx_palloc.o       \
 		  ../objs/src/core/ngx_array.o        \
 		  ../objs/src/core/ngx_radix_tree.o   \
 		  ../objs/src/core/ngx_rbtree.o       \
+		  ../objs/src/core/ngx_hash.o        \
 		  ../objs/src/core/ngx_queue.o
 
 all:test_nginx_api
