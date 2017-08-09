@@ -1,0 +1,13 @@
+{
+    "man":true, 
+    "info":[
+        {
+            "my_name":"ian", 
+            "age":30
+        },
+        {
+            "name":"evil",
+            "age":10000
+        }
+    ]
+}
