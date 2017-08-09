@@ -9,8 +9,9 @@ class JValue;
 #include "j.y.hpp"
 
 typedef std::map<std::string, JValue*> name_value_t;
-typedef std::pair<JValue, JValue> name_value_item_t;
-typedef std::vector<const JValue*> arrays_t;
+typedef std::vector<JValue*> arrays_t;
+
+#define INNER_LEADING_DIFF_SPACES 8
 
 class JValue {
     public:
@@ -22,7 +23,8 @@ class JValue {
             OBJECT = 5,
             ARRAY = 6,
             NIL = 7
-        }; public:
+        };
+    public:
         JValue();
         JValue(int v);
         JValue(const std::string& v);
@@ -35,12 +37,17 @@ class JValue {
         JValueType get_type() const; 
 
         // ---- Array Op ---
-        int push_to_array(const JValue* j_value);
+        int push_to_array(JValue* j_value);
 
         int add_to_object(const std::string& name, JValue* j_value);
 
+        void traverse_print();
+        void set_ouput_leading_spaces(int n);
+        void incr_ouput_leading_spaces();
     private:
         JValueType _type;       
+        int _output_leading_spaces;
+        int _inner_output_leading_spaces;
 
         std::string _s_v;
         int _i_v;

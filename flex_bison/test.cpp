@@ -4,11 +4,14 @@
 #include <stdio.h>
 
 #include "j.y.hpp"
+#include "easytdata.h"
 
 typedef struct yy_buffer_state *YY_BUFFER_STATE;
 extern YY_BUFFER_STATE yy_scan_string(const char*);
 extern void yy_switch_to_buffer  (YY_BUFFER_STATE  new_buffer );
 extern FILE* yyin;
+
+extern JValue* g_oJsonData;
 
 int main(int argc, char *argv[])
 {
@@ -26,6 +29,8 @@ int main(int argc, char *argv[])
         yyin = fin;
     }
     yyparse();
+
+    g_oJsonData->traverse_print();
 
     return 0;
 }

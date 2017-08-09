@@ -57,12 +57,13 @@ ID : IDENTIFIER { $$ = $1; }
    | STRING { $$ = $1; }
 
 KeyValues : KeyValues COMMA ID COLON Value{
-      $$ = $1;
-      $$->set_type(JValue::OBJECT);
       add_to_object($$, $3, $5);
+      $$ = $1;
       }
       | ID COLON Value {
-      $$ = $3;
+      $$ = new JValue();
+      $$->set_type(JValue::OBJECT);
+      add_to_object($$, $1, $3);
       }
 
 Value : NUM  
@@ -81,7 +82,9 @@ Elements : Elements COMMA Value {
         $$->set_type(JValue::ARRAY);
      }
          | Value {
-         $$ = $1;
+         $$ = new JValue();
+         $$->set_type(JValue::ARRAY);
+         push_to_array($$, $1);
      }
 
 %%

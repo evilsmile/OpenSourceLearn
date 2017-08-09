@@ -473,7 +473,7 @@ static const yytype_int8 yyrhs[] =
 static const yytype_uint8 yyrline[] =
 {
        0,    35,    35,    40,    43,    48,    51,    56,    57,    59,
-      64,    68,    69,    70,    71,    72,    73,    74,    78,    83
+      63,    69,    70,    71,    72,    73,    74,    75,    79,    84
 };
 #endif
 
@@ -1439,23 +1439,24 @@ yyreduce:
 /* Line 1792 of yacc.c  */
 #line 59 "j.y"
     {
-      (yyval) = (yyvsp[(1) - (5)]);
-      (yyval)->set_type(JValue::OBJECT);
       add_to_object((yyval), (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));
+      (yyval) = (yyvsp[(1) - (5)]);
       }
     break;
 
   case 10:
 /* Line 1792 of yacc.c  */
-#line 64 "j.y"
+#line 63 "j.y"
     {
-      (yyval) = (yyvsp[(3) - (3)]);
+      (yyval) = new JValue();
+      (yyval)->set_type(JValue::OBJECT);
+      add_to_object((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
       }
     break;
 
   case 17:
 /* Line 1792 of yacc.c  */
-#line 74 "j.y"
+#line 75 "j.y"
     {
       (yyval) = (yyvsp[(1) - (1)]);
       }
@@ -1463,7 +1464,7 @@ yyreduce:
 
   case 18:
 /* Line 1792 of yacc.c  */
-#line 78 "j.y"
+#line 79 "j.y"
     {
         (yyval) = (yyvsp[(1) - (3)]);
         push_to_array((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
@@ -1473,15 +1474,17 @@ yyreduce:
 
   case 19:
 /* Line 1792 of yacc.c  */
-#line 83 "j.y"
+#line 84 "j.y"
     {
-         (yyval) = (yyvsp[(1) - (1)]);
+         (yyval) = new JValue();
+         (yyval)->set_type(JValue::ARRAY);
+         push_to_array((yyval), (yyvsp[(1) - (1)]));
      }
     break;
 
 
 /* Line 1792 of yacc.c  */
-#line 1485 "j.y.cpp"
+#line 1488 "j.y.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1713,5 +1716,5 @@ yyreturn:
 
 
 /* Line 2055 of yacc.c  */
-#line 87 "j.y"
+#line 90 "j.y"
 
