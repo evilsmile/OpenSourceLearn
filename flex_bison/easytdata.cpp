@@ -1,9 +1,52 @@
 #include "easytdata.h"
 #include <stdio.h>
 
-std::string JValue::ToJson()
+static std::string i2s(int i)
 {
-    return ">>>>>"; 
+    char buf[20] = {0};
+    int n = snprintf(buf, sizeof(buf), "%d", i);
+    return std::string(buf, n);
+}
+
+std::string JValue::to_json()
+{
+    std::string parsed;
+
+    if (_type == JValue::NUM) {
+        parsed += i2s(_i_v);
+    } else if (_type == JValue::STRING) {
+        parsed += _s_v;
+    } else if (_type == JValue::TRUE) {
+        parsed += "true";
+    } else if (_type == JValue::FALSE) {
+        parsed += "false";
+    } else if (_type == JValue::NIL) {
+        parsed += "nil";
+    } else if (_type == JValue::OBJECT) {
+            parsed += " { ";
+
+        name_value_t::iterator iter;
+        for (iter = _o_v.begin();
+                iter != _o_v.end();
+                ++iter) {
+            parsed += iter->first;
+            parsed += " : ";
+            parsed += iter->second->to_json();
+            parsed += " , ";
+        }
+        parsed += " }, ";
+    } else if (_type == JValue::ARRAY) {
+        parsed += " [ ";
+        arrays_t::iterator iter;
+        for (iter = _a_v.begin();
+                iter != _a_v.end();
+                ++iter) {
+            parsed += (*iter)->to_json();
+        }
+        parsed += " ] ";
+    }
+
+    return parsed;
 }
 
 
@@ -99,8 +142,12 @@ void JValue::traverse_print()
     }
 }
 
+JValue::~JValue()
+{
+}
+
 // ---- Array Op ---
-int JValue::push_to_array(JValue* j_value)
+int JValue::push_to_array(JValuePtr j_value)
 {
     _a_v.push_back(j_value);
 
@@ -108,7 +155,7 @@ int JValue::push_to_array(JValue* j_value)
 }
 
 // ---- Object Op ---
-int JValue::add_to_object(const std::string& name, JValue* j_value)
+int JValue::add_to_object(const std::string& name, JValuePtr j_value)
 {
     _o_v[name] = j_value;
     

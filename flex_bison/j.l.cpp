@@ -467,8 +467,9 @@ char *yytext;
 #line 2 "j.l"
 #include <iostream>
 #include <stdio.h>
-#define YYSTYPE JValue*
 #include "easytdata.h"
+#define YYSTYPE JValuePtr
+#include "j.y.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -481,7 +482,7 @@ int yywrap()
 }
 #endif
 
-#line 485 "j.l.cpp"
+#line 486 "j.l.cpp"
 
 #define INITIAL 0
 
@@ -663,9 +664,9 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 27 "j.l"
+#line 28 "j.l"
 
-#line 669 "j.l.cpp"
+#line 670 "j.l.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -750,88 +751,88 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 28 "j.l"
+#line 29 "j.l"
 {
     if (strncmp(yytext, "true", 4) == 0) {
-        yylval = new JValue(true);
+        yylval.reset(new JValue(true));
         return TRUE;
     } else if (strncmp(yytext, "false", 4) == 0) {
-        yylval = new JValue(false);
+        yylval.reset(new JValue(false));
         return FALSE;
     } else if (strncmp(yytext, "null", 4) == 0) {
-        yylval = new JValue();
+        yylval.reset(new JValue());
         return NIL;
     } else {
-        yylval = new JValue(yytext);
+        yylval.reset(new JValue(yytext));
         return IDENTIFIER;
     }
 }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 44 "j.l"
+#line 45 "j.l"
 {
     int i = atoi(yytext);
-    yylval = new JValue(i);
+    yylval.reset(new JValue(i));
     return NUM;
 }
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 50 "j.l"
+#line 51 "j.l"
 {
-    yylval = new JValue(yytext);
+    yylval.reset(new JValue(yytext));
     return STRING;
 }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 55 "j.l"
+#line 56 "j.l"
 { return L_BRACE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 56 "j.l"
+#line 57 "j.l"
 { return R_BRACE; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 57 "j.l"
+#line 58 "j.l"
 { return L_BRACKET; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 58 "j.l"
+#line 59 "j.l"
 { return R_BRACKET; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 59 "j.l"
+#line 60 "j.l"
 { return COLON; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 60 "j.l"
+#line 61 "j.l"
 { return SEMICOLON; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 61 "j.l"
+#line 62 "j.l"
 { return COMMA; }
 	YY_BREAK
 case 11:
 /* rule 11 can match eol */
 YY_RULE_SETUP
-#line 62 "j.l"
+#line 63 "j.l"
 
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 63 "j.l"
+#line 64 "j.l"
 ECHO;
 	YY_BREAK
-#line 835 "j.l.cpp"
+#line 836 "j.l.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1825,7 +1826,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 63 "j.l"
+#line 64 "j.l"
 
 
 

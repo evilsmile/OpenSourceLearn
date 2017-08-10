@@ -1,8 +1,9 @@
 %{
 #include <iostream>
 #include <stdio.h>
-#define YYSTYPE JValue*
 #include "easytdata.h"
+#define YYSTYPE JValuePtr
+#include "j.y.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,28 +28,28 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 %%
 {identifier} {
     if (strncmp(yytext, "true", 4) == 0) {
-        yylval = new JValue(true);
+        yylval.reset(new JValue(true));
         return TRUE;
     } else if (strncmp(yytext, "false", 4) == 0) {
-        yylval = new JValue(false);
+        yylval.reset(new JValue(false));
         return FALSE;
     } else if (strncmp(yytext, "null", 4) == 0) {
-        yylval = new JValue();
+        yylval.reset(new JValue());
         return NIL;
     } else {
-        yylval = new JValue(yytext);
+        yylval.reset(new JValue(yytext));
         return IDENTIFIER;
     }
 }
 
 {num} {
     int i = atoi(yytext);
-    yylval = new JValue(i);
+    yylval.reset(new JValue(i));
     return NUM;
 }
 
 {string} {
-    yylval = new JValue(yytext);
+    yylval.reset(new JValue(yytext));
     return STRING;
 }
 

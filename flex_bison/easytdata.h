@@ -4,12 +4,12 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <boost/shared_ptr.hpp>
 
 class JValue;
-#include "j.y.hpp"
-
-typedef std::map<std::string, JValue*> name_value_t;
-typedef std::vector<JValue*> arrays_t;
+typedef boost::shared_ptr<JValue> JValuePtr;
+typedef std::map<std::string, JValuePtr> name_value_t;
+typedef std::vector<JValuePtr> arrays_t;
 
 #define INNER_LEADING_DIFF_SPACES 8
 
@@ -30,20 +30,24 @@ class JValue {
         JValue(const std::string& v);
         JValue(char *);
         JValue(bool v);
-        std::string ToJson();
+        ~JValue();
+
+        std::string to_json();
 
         std::string get_string() const ;
         void set_type(JValueType);
         JValueType get_type() const; 
 
         // ---- Array Op ---
-        int push_to_array(JValue* j_value);
+        int push_to_array(JValuePtr j_value);
 
-        int add_to_object(const std::string& name, JValue* j_value);
+        int add_to_object(const std::string& name, JValuePtr j_value);
 
         void traverse_print();
         void set_ouput_leading_spaces(int n);
         void incr_ouput_leading_spaces();
+
+    private:
     private:
         JValueType _type;       
         int _output_leading_spaces;

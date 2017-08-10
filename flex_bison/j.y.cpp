@@ -65,27 +65,26 @@
 /* Line 371 of yacc.c  */
 #line 1 "j.y"
 
-class JValue;
-#define YYSTYPE JValue*
+#include "easytdata.h"
+#define YYSTYPE JValuePtr
 #define YYDEBUG 1
 #include "stdio.h"
-#include "easytdata.h"
 
 extern int yylex();
 void yyerror(const char* msg) {
     printf("yyparse error: %s\n", msg);
 }
 
-JValue* g_oJsonData;
+JValuePtr g_oJsonData;
 
-int push_to_array(JValue* j_array, JValue* j_value)
+int push_to_array(JValuePtr j_array, JValuePtr j_value)
 {
     j_array->push_to_array(j_value);
 
     return 0;
 }
 
-int add_to_object(JValue* j_obj, JValue* j_name, JValue* j_value)
+int add_to_object(JValuePtr j_obj, JValuePtr j_name, JValuePtr j_value)
 {
     const std::string& name = j_name->get_string();
     j_obj->add_to_object(name, j_value);
@@ -95,7 +94,7 @@ int add_to_object(JValue* j_obj, JValue* j_name, JValue* j_value)
 
 
 /* Line 371 of yacc.c  */
-#line 99 "j.y.cpp"
+#line 98 "j.y.cpp"
 
 # ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -178,7 +177,7 @@ int yyparse ();
 /* Copy the second part of user declarations.  */
 
 /* Line 390 of yacc.c  */
-#line 182 "j.y.cpp"
+#line 181 "j.y.cpp"
 
 #ifdef short
 # undef short
@@ -472,8 +471,8 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    35,    35,    40,    43,    48,    51,    56,    57,    59,
-      63,    69,    70,    71,    72,    73,    74,    75,    79,    84
+       0,    34,    34,    38,    41,    46,    49,    54,    55,    57,
+      61,    67,    68,    69,    70,    71,    72,    73,    77,    82
 };
 #endif
 
@@ -1382,16 +1381,15 @@ yyreduce:
     {
         case 2:
 /* Line 1792 of yacc.c  */
-#line 35 "j.y"
+#line 34 "j.y"
     { 
      g_oJsonData = (yyvsp[(1) - (1)]);  
-     printf("=================\nResult toJson(): %s\n", g_oJsonData->ToJson().c_str());
      }
     break;
 
   case 3:
 /* Line 1792 of yacc.c  */
-#line 40 "j.y"
+#line 38 "j.y"
     { 
             (yyval) = (yyvsp[(2) - (3)]);
         }
@@ -1399,16 +1397,16 @@ yyreduce:
 
   case 4:
 /* Line 1792 of yacc.c  */
-#line 43 "j.y"
+#line 41 "j.y"
     { 
-        (yyval) = new JValue();
+        (yyval).reset(new JValue());
         (yyval)->set_type(JValue::OBJECT);
         }
     break;
 
   case 5:
 /* Line 1792 of yacc.c  */
-#line 48 "j.y"
+#line 46 "j.y"
     { 
         (yyval) = (yyvsp[(2) - (3)]);
         }
@@ -1416,28 +1414,28 @@ yyreduce:
 
   case 6:
 /* Line 1792 of yacc.c  */
-#line 51 "j.y"
+#line 49 "j.y"
     { 
-      (yyval) = new JValue();
+      (yyval).reset(new JValue());
       (yyval)->set_type(JValue::ARRAY);
         }
     break;
 
   case 7:
 /* Line 1792 of yacc.c  */
-#line 56 "j.y"
+#line 54 "j.y"
     { (yyval) = (yyvsp[(1) - (1)]); }
     break;
 
   case 8:
 /* Line 1792 of yacc.c  */
-#line 57 "j.y"
+#line 55 "j.y"
     { (yyval) = (yyvsp[(1) - (1)]); }
     break;
 
   case 9:
 /* Line 1792 of yacc.c  */
-#line 59 "j.y"
+#line 57 "j.y"
     {
       add_to_object((yyval), (yyvsp[(3) - (5)]), (yyvsp[(5) - (5)]));
       (yyval) = (yyvsp[(1) - (5)]);
@@ -1446,9 +1444,9 @@ yyreduce:
 
   case 10:
 /* Line 1792 of yacc.c  */
-#line 63 "j.y"
+#line 61 "j.y"
     {
-      (yyval) = new JValue();
+      (yyval).reset(new JValue());
       (yyval)->set_type(JValue::OBJECT);
       add_to_object((yyval), (yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
       }
@@ -1456,7 +1454,7 @@ yyreduce:
 
   case 17:
 /* Line 1792 of yacc.c  */
-#line 75 "j.y"
+#line 73 "j.y"
     {
       (yyval) = (yyvsp[(1) - (1)]);
       }
@@ -1464,7 +1462,7 @@ yyreduce:
 
   case 18:
 /* Line 1792 of yacc.c  */
-#line 79 "j.y"
+#line 77 "j.y"
     {
         (yyval) = (yyvsp[(1) - (3)]);
         push_to_array((yyvsp[(1) - (3)]), (yyvsp[(3) - (3)]));
@@ -1474,9 +1472,9 @@ yyreduce:
 
   case 19:
 /* Line 1792 of yacc.c  */
-#line 84 "j.y"
+#line 82 "j.y"
     {
-         (yyval) = new JValue();
+         (yyval).reset(new JValue());
          (yyval)->set_type(JValue::ARRAY);
          push_to_array((yyval), (yyvsp[(1) - (1)]));
      }
@@ -1484,7 +1482,7 @@ yyreduce:
 
 
 /* Line 1792 of yacc.c  */
-#line 1488 "j.y.cpp"
+#line 1486 "j.y.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1716,5 +1714,5 @@ yyreturn:
 
 
 /* Line 2055 of yacc.c  */
-#line 90 "j.y"
+#line 88 "j.y"
 
