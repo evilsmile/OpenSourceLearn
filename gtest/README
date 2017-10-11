@@ -1,0 +1,3 @@
+1. 下载googletest代码, 进入目录，cmake .编译，得到libgtest.a和libgtest_main.a两个文件。
+2. 写好功能文件后，编写test文件
+3. Makefile中添加gtest的头文件路径和库路径，及-lpthread。编译，运行测试
