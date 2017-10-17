@@ -60,11 +60,7 @@ void dns_namecb(void *arg, int status, int timeout, struct hostent* host)
 
 int main(int argc, char **argv)
 {
-    int res;
-    if (argc < 2) {
-        std::cout << "Usage: " << argv[0] << " ip.address\n";
-        return -1;
-    }
+    int res = ARES_SUCCESS;
 
     // 创建一个ares_channel
     // 可能根据环境变量找到DNS服务IP，或者找/etc/resolved.conf
