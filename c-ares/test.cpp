@@ -69,6 +69,9 @@ int main(int argc, char **argv)
         return -2;
     }
 
+    DnsResolver dnsResolver;
+    boost::thread query_thread(dnsResolver);
+
     while (true) {
         struct in_addr ip;
 
@@ -86,8 +89,6 @@ int main(int argc, char **argv)
 #endif
     }
 
-    DnsResolver dnsResolver;
-    boost::thread query_thread(dnsResolver);
     query_thread.join();
 
     return 0;
