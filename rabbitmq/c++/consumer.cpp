@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <unistd.h>
+
 void rabbit_init(amqp_connection_state_t& conn)
 {
     conn = amqp_new_connection();
@@ -87,6 +89,7 @@ void rabbit_consume_loop(amqp_connection_state_t& conn)
                 break;
             case AMQP_RESPONSE_LIBRARY_EXCEPTION:
                 if (reply.library_error == AMQP_STATUS_TIMEOUT) {
+                    amqp_destroy_envelope(&envelope);
                     continue;
                 } else {
                     std::cerr << "amqp consume library exception\n";
@@ -102,14 +105,18 @@ void rabbit_consume_loop(amqp_connection_state_t& conn)
         int channelid = envelope.channel;
         int deliverytag = envelope.delivery_tag;
 
+//        std::cout << deliverytag << " ";
+        /*
         std::cout << "Channel: " << channelid << ", "
             << "DeliveryTag: " << deliverytag << ", "
             << "Exchange: " << std::string((char*)envelope.exchange.bytes, envelope.exchange.len) << ", "
             << "RouteKey: " << std::string((char*)envelope.routing_key.bytes, envelope.routing_key.len) << ", "
             << "Data: " << data 
             << std::endl;
+            */
 
         amqp_basic_ack(conn, channelid, deliverytag, 0 /* multiple */);
+        amqp_destroy_envelope(&envelope);
     }
 
 }

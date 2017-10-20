@@ -14,11 +14,11 @@
 
 const int SUMMARY_EVERY_US = 1000000;
 
-const int SEND_MSG_CNT = 10000;
+const int SEND_MSG_CNT = 1000000;
 
-const int RATE_LIMIT = 10000;
+const int RATE_LIMIT = 5000;
 
-uint64_t now_ms(void)
+uint64_t now_us(void)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -26,37 +26,59 @@ uint64_t now_ms(void)
     return (uint64_t) tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec;
 }
 
-void microsleep(int usec)
-{
-    struct timespec req;
-    req.tv_sec = 0;
-    req.tv_nsec = 1000 * usec;
-    nanosleep(&req, NULL);
-}
 
 static void send_batch(amqp_connection_state_t conn,
                        const std::string& queue_name,
                        int rate_limit,
                        int msg_cnt)
 {
-    uint64_t start_time = now_ms();
-    uint64_t previous_report_time = start_time;
-    uint64_t next_summary_time = start_time + SUMMARY_EVERY_US;
-
-    char message[256] = {0};
+    char message[1024] = {0};
     amqp_bytes_t message_bytes;
 
+    memset(message, '0', sizeof(message));
+    /*
     for (int i = 0; i < (int)sizeof(message); ++i) {
         message[i] = ('0' + i%10)&0xff;
     }
+    */
 
     message_bytes.len = sizeof(message);
     message_bytes.bytes = message;
 
     int sent = 0;
     int previous_sent = 0;
+    int sent_this_sec = 0;
+
+    uint64_t start_time = now_us();
+    uint64_t start_sec = start_time;
+    uint64_t next_sec = start_time + SUMMARY_EVERY_US;
+
+    std::cout << "rate_limit: " << rate_limit << std::endl;
     for (int i = 0; i < msg_cnt; ++i) {
-        uint64_t now = now_ms();
+
+        uint64_t now = now_us();
+
+        // 限流
+        if (sent_this_sec >= rate_limit) {
+            while (now < next_sec) {
+                // 2ms
+                microsleep(2000);
+                now = now_us();
+            }
+        }
+
+        if (now >= next_sec) {
+            /*
+            int countOverInterval = sent - previous_sent;
+            previous_sent = sent;
+            double intervalRate = countOverInterval / ((now - start_sec) / 1000000.0);
+            printf("%d ms: sent %d - %d since last report (%d Hz)\n",
+                    (int)(now - start_time)/1000, sent, countOverInterval, (int)intervalRate);
+                    */
+            sent_this_sec = 0;
+            start_sec = now;
+            next_sec = start_sec + SUMMARY_EVERY_US;
+        }
 
         amqp_basic_publish(conn,                          /* state */
                            CHANNEL_ID,                    /* channel */
@@ -69,25 +91,12 @@ static void send_batch(amqp_connection_state_t conn,
                            );
         check_amqp_reply(conn, "amqp basic publish");
         ++sent;
+        ++sent_this_sec;
 
-        if (now > next_summary_time) {
-            int countOverInterval = sent - previous_sent;
-            double intervalRate = countOverInterval / ((now - previous_report_time) / 1000000.0);
-            printf("%d ms: sent %d - %d since last report (%d Hz)\n",
-                    (int)(now - start_time)/1000, sent, countOverInterval, (int)intervalRate);
-            previous_sent = sent;
-            previous_report_time = now;
-            next_summary_time = SUMMARY_EVERY_US;
-        }
-
-        while (((i * 1000000.0) / (now - start_time)) > rate_limit) {
-            microsleep(2000);
-            now = now_ms();
-        }
     }
 
     {
-        uint64_t stop_time = now_ms();
+        uint64_t stop_time = now_us();
         int total_delta = (int)(stop_time - start_time);
 
         printf("PRODUCER - Message count: %d\n", msg_cnt);
@@ -126,13 +135,17 @@ void rabbit_close(amqp_connection_state_t& conn)
     amqp_destroy_connection(conn);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    int rate_limit = RATE_LIMIT;
+    if (argc > 1) {
+        rate_limit = atoi(argv[1]);
+    }
     amqp_connection_state_t conn;
 
     rabbit_init(conn);
 
-    send_batch(conn, QUEUE_NAME, RATE_LIMIT, SEND_MSG_CNT);
+    send_batch(conn, QUEUE_NAME, rate_limit, SEND_MSG_CNT);
 
     rabbit_close(conn);
    

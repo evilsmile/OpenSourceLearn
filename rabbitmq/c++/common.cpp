@@ -45,4 +45,10 @@ void check_amqp_reply(amqp_connection_state_t& conn, const std::string& show_tip
     ABORT(show_tip);
 }
 
-
+void microsleep(int usec)
+{
+    struct timespec req;
+    req.tv_sec = 0;
+    req.tv_nsec = 1000 * usec;
+    nanosleep(&req, NULL);
+}
