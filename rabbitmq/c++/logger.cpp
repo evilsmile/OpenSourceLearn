@@ -2,13 +2,52 @@
 
 #include <unistd.h>
 
-#if 1
-// 开启消费ACK
+static const std::string LOG_EXCHANGE_NAME = "amq.rabbitmq.log";
+static const std::string ERR_QUEUE_NAME = "rmq_error_queue";
+static const std::string WARN_QUEUE_NAME = "rmq_warn_queue";
+static const std::string INFO_QUEUE_NAME = "rmq_info_queue";
+static const int LOG_CHANNEL_ID = 2888;
+
 bool bConsumeAck = true;
-#else
-// 关闭消费ACK
-bool bConsumeAck = false;
-#endif
+
+void single_queue_init(amqp_connection_state_t& conn, const std::string& queue_name, const std::string& route_name)
+{
+     amqp_queue_declare(conn,              /* state */
+                       LOG_CHANNEL_ID,        /* channel */
+                       amqp_cstring_bytes(queue_name.c_str()),  /* queue */
+                       0,       /* passive */
+                       0,       /* durable */
+                       1,       /* exclusive */
+                       0,       /* auto_delete */
+                       amqp_empty_table);
+    check_amqp_reply(conn, "Declaring queue");
+    std::cout << "Queue '" << queue_name << "' declared." << std::endl;
+
+    amqp_queue_bind(conn,
+                    LOG_CHANNEL_ID,
+                    amqp_cstring_bytes(queue_name.c_str()),
+                    amqp_cstring_bytes(LOG_EXCHANGE_NAME.c_str()),
+                    amqp_cstring_bytes(route_name.c_str()),
+                    amqp_empty_table);
+    check_amqp_reply(conn, "amqp bind queue failed.");
+    std::cout << "Queue '" << queue_name << "' binded." << std::endl;
+
+    char szChannelId[32] = {0};
+    snprintf(szChannelId, sizeof(szChannelId), "%d", LOG_CHANNEL_ID);
+
+    amqp_basic_consume(conn,        /* connection */
+                       LOG_CHANNEL_ID,  /* channel */
+                       amqp_cstring_bytes(queue_name.c_str()),  /* queue */
+                       //amqp_cstring_bytes(szChannelId),     /* consumer_tag */
+                       amqp_empty_bytes,
+                       0,       /* no_local */
+                       (bConsumeAck? 0 : 1),       /* no_ack */
+                       0,       /* exclusive */
+                       amqp_empty_table    /* argument */
+                       );
+    check_amqp_reply(conn, "amqp basic consume failed.");
+    std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
+}
 
 void rabbit_init(amqp_connection_state_t& conn)
 {
@@ -29,56 +68,12 @@ void rabbit_init(amqp_connection_state_t& conn)
         ABORT("amqp login failed.");
     }
 
-    amqp_channel_open(conn, CHANNEL_ID);
+    amqp_channel_open(conn, LOG_CHANNEL_ID);
     check_amqp_reply(conn, "amqp open channel failed.");
     
-    amqp_exchange_declare(conn, /* state */
-                          CHANNEL_ID,    /* channel */
-                          amqp_cstring_bytes(EXCHANGE_NAME.c_str()),  /* exchange */
-                          amqp_cstring_bytes(EXCHANGE_TYPE.c_str()),  /* type */
-                          0,          /* passive */
-                          1,          /* durable */
-                          0,          /* auto_delete */
-                          0,    /* internal */
-                          amqp_empty_table);
-    check_amqp_reply(conn, "amqp declare exchange failed.");
-    std::cout << "Exchange '" << EXCHANGE_NAME << "' declared." << std::endl;
-
-     amqp_queue_declare(conn,              /* state */
-                       CHANNEL_ID,        /* channel */
-                       amqp_cstring_bytes(QUEUE_NAME.c_str()),  /* queue */
-                       0,       /* passive */
-                       1,       /* durable */
-                       0,       /* exclusive */
-                       0,       /* auto_delete */
-                       amqp_empty_table);
-    check_amqp_reply(conn, "Declaring queue");
-    std::cout << "Queue '" << QUEUE_NAME << "' declared." << std::endl;
-    amqp_queue_bind(conn,
-                    CHANNEL_ID,
-                    amqp_cstring_bytes(QUEUE_NAME.c_str()),
-                    amqp_cstring_bytes(EXCHANGE_NAME.c_str()),
-                    amqp_cstring_bytes(ROUTER_NAME.c_str()),
-                    amqp_empty_table);
-    check_amqp_reply(conn, "amqp bind queue failed.");
-    std::cout << "Queue '" << QUEUE_NAME << "' binded." << std::endl;
-
-    amqp_basic_qos(conn, CHANNEL_ID, 0, 1, 0);
-
-    char szChannelId[32] = {0};
-    snprintf(szChannelId, sizeof(szChannelId), "%d", CHANNEL_ID);
-
-    amqp_basic_consume(conn,        /* connection */
-                       CHANNEL_ID,  /* channel */
-                       amqp_cstring_bytes(QUEUE_NAME.c_str()),  /* queue */
-                       amqp_cstring_bytes(szChannelId),     /* consumer_tag */
-                       0,       /* no_local */
-                       (bConsumeAck? 0 : 1),       /* no_ack */
-                       0,       /* exclusive */
-                       amqp_empty_table    /* argument */
-                       );
-    check_amqp_reply(conn, "amqp basic consume failed.");
-    std::cout << "Queue '" << QUEUE_NAME << "' basic_consume." << std::endl;
+    single_queue_init(conn, ERR_QUEUE_NAME, "error");
+    single_queue_init(conn, WARN_QUEUE_NAME, "warn");
+    single_queue_init(conn, INFO_QUEUE_NAME, "info");
 }
 
 void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
@@ -151,14 +146,12 @@ void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
         int deliverytag = envelope.delivery_tag;
 
 //        std::cout << deliverytag << " ";
-        /*
         std::cout << "Channel: " << channelid << ", "
             << "DeliveryTag: " << deliverytag << ", "
             << "Exchange: " << std::string((char*)envelope.exchange.bytes, envelope.exchange.len) << ", "
             << "RouteKey: " << std::string((char*)envelope.routing_key.bytes, envelope.routing_key.len) << ", "
             << "Data: " << data 
             << std::endl;
-            */
 
         if (bConsumeAck) {
             amqp_basic_ack(conn, channelid, deliverytag, 0 /* multiple */);
@@ -171,7 +164,7 @@ void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
 
 void rabbit_close(amqp_connection_state_t& conn)
 {
-    amqp_channel_close(conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
+    amqp_channel_close(conn, LOG_CHANNEL_ID, AMQP_REPLY_SUCCESS);
     amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
     amqp_destroy_connection(conn);
 }

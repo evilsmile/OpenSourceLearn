@@ -2,11 +2,14 @@ CXXFLAGS=-g -Wall
 LDFLAGS=-lrabbitmq
 CC=g++
 
-BIN=consumer producer
+BIN=consumer producer logger
 
 all:${BIN}
 
 consumer:common.o consumer.o
+	${CC} ${CXXFLAGS} -o $@ $^ ${LDFLAGS}
+
+logger:common.o logger.o
 	${CC} ${CXXFLAGS} -o $@ $^ ${LDFLAGS}
 
 producer:common.o producer.o
