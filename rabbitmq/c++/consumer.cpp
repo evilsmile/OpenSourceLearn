@@ -69,11 +69,44 @@ void rabbit_init(amqp_connection_state_t& conn)
     check_amqp_reply(conn, "amqp basic consume failed.");
 }
 
-void rabbit_consume_loop(amqp_connection_state_t& conn)
+void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
 {
     amqp_rpc_reply_t reply;
+    
+    int recv = 0;
+    int previous_recv = 0;
+    int recv_this_sec = 0;
+
+    uint64_t start_time = now_us();
+    uint64_t start_sec = start_time;
+    uint64_t next_sec = start_time + SUMMARY_EVERY_US;
 
     while (true) {
+        uint64_t now = now_us();
+        // 限流
+        if (recv_this_sec >= rate_limit) {
+            while (now < next_sec) {
+                // 2ms
+                microsleep(2000);
+                now = now_us();
+            }
+        }
+
+        if (now >= next_sec) {
+            /*
+            int countOverInterval = recv - previous_recv;
+            previous_recv = recv;
+            double intervalRate = countOverInterval / ((now - start_sec) / 1000000.0);
+            printf("%d ms: recv %d - %d since last report (%d Hz)\n",
+                    (int)(now - start_time)/1000, recv, countOverInterval, (int)intervalRate);
+                    */
+            recv_this_sec = 0;
+            start_sec = now;
+            next_sec = start_sec + SUMMARY_EVERY_US;
+        }
+
+
+
         amqp_envelope_t envelope;
         memset(&envelope, 0, sizeof(envelope));
 
@@ -117,6 +150,7 @@ void rabbit_consume_loop(amqp_connection_state_t& conn)
 
         amqp_basic_ack(conn, channelid, deliverytag, 0 /* multiple */);
         amqp_destroy_envelope(&envelope);
+        ++recv_this_sec;
     }
 
 }
@@ -128,13 +162,17 @@ void rabbit_close(amqp_connection_state_t& conn)
     amqp_destroy_connection(conn);
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    int rate_limit = RATE_LIMIT;
+    if (argc > 1) {
+        rate_limit = atoi(argv[1]);
+    }
     amqp_connection_state_t conn;
 
     rabbit_init(conn);
 
-    rabbit_consume_loop(conn);
+    rabbit_consume_loop(conn, rate_limit);
 
     rabbit_close(conn);
 

@@ -26,6 +26,13 @@ const std::string PASSWD = "guest";
 
 const std::string QUEUE_NAME = "flow_ctl_test_queue";
 
+const int SUMMARY_EVERY_US = 1000000;
+
+const int SEND_MSG_CNT = 1000000;
+
+const int RATE_LIMIT = 5000;
+
+
 #define ABORT(msg) \
     std::cerr << "ABORT: " << msg << std::endl; \
     exit(-1);
@@ -33,5 +40,7 @@ const std::string QUEUE_NAME = "flow_ctl_test_queue";
 void check_amqp_reply(amqp_connection_state_t& conn, const std::string& show_tip);
 
 void microsleep(int usec);
+
+uint64_t now_us(void);
 
 #endif

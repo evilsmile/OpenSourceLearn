@@ -3,29 +3,12 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-#include <sys/time.h>
-#include <ctime>
 
 #include <amqp_tcp_socket.h>
 #include <amqp.h>
 #include <amqp_framing.h>
 
 #include "common.h"
-
-const int SUMMARY_EVERY_US = 1000000;
-
-const int SEND_MSG_CNT = 1000000;
-
-const int RATE_LIMIT = 5000;
-
-uint64_t now_us(void)
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    return (uint64_t) tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec;
-}
-
 
 static void send_batch(amqp_connection_state_t conn,
                        const std::string& queue_name,
@@ -97,10 +80,10 @@ static void send_batch(amqp_connection_state_t conn,
 
     {
         uint64_t stop_time = now_us();
-        int total_delta = (int)(stop_time - start_time);
+        uint64_t total_delta = (int)(stop_time - start_time);
 
         printf("PRODUCER - Message count: %d\n", msg_cnt);
-        printf("Total time, milliseconds: %d\n", total_delta/1000);
+        printf("Total time, milliseconds: %lu\n", total_delta/1000);
         printf("Overall messages-per-second: %g\n", (msg_cnt/(total_delta / 1000000.0)));
     }
 }
