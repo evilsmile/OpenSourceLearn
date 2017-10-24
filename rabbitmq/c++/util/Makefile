@@ -4,7 +4,8 @@ CC=g++
 
 LIB=libutil.a
 
-OBJS=common.o
+SRCS=$(shell ls *.cpp)
+OBJS=$(patsubst %.cpp,%.o,${SRCS})
 
 all:${LIB}
 
