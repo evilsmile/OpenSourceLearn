@@ -1,6 +1,4 @@
-CXXFLAGS=-g -Wall -I../
-LDFLAGS=-lrabbitmq
-CC=g++
+include ../make.comm
 
 LIB=libutil.a
 
