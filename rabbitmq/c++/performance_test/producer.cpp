@@ -7,6 +7,7 @@
 #include "common.h"
 #include "names.h"
 #include "rabbitmq_util.h"
+#include "configparser.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,7 +18,18 @@ int main(int argc, char *argv[])
 
     int send_cnt = SEND_MSG_CNT;
 
-    RabbitMQ rabbitMQ(USER, PASSWD, HOST_IP, HOST_PORT, CHANNEL_ID);
+    ConfigParser config_parser;
+    if (config_parser.init("../config/config.txt") == false) {
+        return -1;
+    }
+
+    std::string user = config_parser.getString("rabbitmq_username", "");
+    std::string passwd = config_parser.getString("rabbitmq_password", "");
+    std::string host_ip = config_parser.getString("rabbitmq_hostip", "");
+    int host_port = config_parser.getInt32("rabbitmq_port", -1);
+
+    RabbitMQ rabbitMQ(user, passwd, host_ip, host_port, CHANNEL_ID);
+
     rabbitMQ.set_ratelimit(rate_limit);
 
     std::string msg = "oooo";

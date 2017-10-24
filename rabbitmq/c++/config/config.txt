@@ -2,6 +2,6 @@
 rabbitmq_hostip=127.0.0.1
 #host port
 rabbitmq_port=5672
-rabbitmq_username=guest #
-rabbitmq_password=guest
+rabbitmq_username=guest  
+rabbitmq_password = guest
 rabbitmq_root=/

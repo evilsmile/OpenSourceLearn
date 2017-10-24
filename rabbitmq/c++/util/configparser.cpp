@@ -39,7 +39,9 @@ bool ConfigParser::init(const std::string& config_file_path)
         std::string key = line.substr(0, pos);
         std::string value = line.substr(pos+1);
         
-        std::cout << key << " : " << value << std::endl;
+        trim(key);
+        trim(value);
+        std::cout << "|" << key << "| : |" << value << "|" << std::endl;
 
         _key_values.insert(std::make_pair(key, value));
     }
