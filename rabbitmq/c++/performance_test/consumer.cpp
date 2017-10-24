@@ -10,8 +10,8 @@ RabbitMQ rabbitMQ;
 
 static void ctrlc_handler(int)
 {
-    std::cout << "ctl";
-    rabbitMQ.close();
+    std::cout << "Rabbitmq Existing!" << std::endl;
+    rabbitMQ.stop();
 }
 
 void ctrl_c(void)

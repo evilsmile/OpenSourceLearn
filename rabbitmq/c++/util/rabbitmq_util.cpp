@@ -69,6 +69,7 @@ void RabbitMQ::_set_default_param(void)
     _rate_limit = 5000;
     _ack_flag = true;
     _prefetch_cnt = 1;
+    _running = true;
 }
 
 void RabbitMQ::exchange_declare(const std::string& exchange_name,
@@ -136,6 +137,11 @@ void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
 }
 
+void RabbitMQ::stop()
+{
+    _running = false;
+}
+
 void RabbitMQ::close()
 {
     amqp_channel_close(_conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
@@ -156,7 +162,7 @@ void RabbitMQ::consume_loop()
     uint64_t start_sec = start_time;
     uint64_t next_sec = start_time + SUMMARY_EVERY_US;
 
-    while (true) {
+    while (_running) {
         uint64_t now = now_us();
         // 限流
         if (recv_this_sec >= _rate_limit) {
@@ -251,7 +257,7 @@ void RabbitMQ::publish(const std::string& exchange_name,
     uint64_t next_sec = start_time + SUMMARY_EVERY_US;
 
     std::cout << "rate_limit: " << _rate_limit << std::endl;
-    for (int i = 0; i < msg_cnt; ++i) {
+    for (int i = 0; _running && i < msg_cnt; ++i) {
 
         uint64_t now = now_us();
 
@@ -289,7 +295,6 @@ void RabbitMQ::publish(const std::string& exchange_name,
         check_amqp_reply("amqp basic publish");
         ++sent;
         ++sent_this_sec;
-
     }
 
     {

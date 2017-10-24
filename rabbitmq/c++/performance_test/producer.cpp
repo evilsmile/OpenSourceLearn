@@ -14,7 +14,8 @@ RabbitMQ rabbitMQ;
 
 static void ctrlc_handler(int)
 {
-    rabbitMQ.close();
+    std::cout << "Rabbitmq Existing!" << std::endl;
+    rabbitMQ.stop();
 }
 
 void ctrl_c(void)

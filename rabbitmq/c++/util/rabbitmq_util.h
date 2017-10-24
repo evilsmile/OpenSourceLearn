@@ -57,12 +57,16 @@ class RabbitMQ
 
         void set_prefetchcnt(uint32_t prefetch_size);
 
+        void stop();
+        
     private:
         void _set_default_param();
 
     private:
         amqp_connection_state_t _conn; 
         int _channel_id;
+
+        bool _running;
 
         int _rate_limit;
         bool _ack_flag;
