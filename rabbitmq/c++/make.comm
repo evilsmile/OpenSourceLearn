@@ -1,0 +1,6 @@
+DEP_LIBS=../libs/libutil.a
+
+CXXFLAGS=-g -Wall -I../util/
+LDFLAGS=-lrabbitmq ${DEP_LIBS}
+CC=g++
+

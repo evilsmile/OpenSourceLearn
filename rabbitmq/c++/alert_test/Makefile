@@ -1,15 +1,13 @@
-CXXFLAGS=-g -Wall -I../
-LDFLAGS=-lrabbitmq
-CC=g++
+include ../make.comm
 
 BIN=alert_consumer alert_producer
 
 all:${BIN}
 
-alert_consumer:../common.o alert_consumer.o
+alert_consumer:alert_consumer.o
 	${CC} ${CXXFLAGS} -o $@ $^ ${LDFLAGS}
 
-alert_producer:../common.o alert_producer.o
+alert_producer:alert_producer.o
 	${CC} ${CXXFLAGS} -o $@ $^ ${LDFLAGS}
 
 clean:
