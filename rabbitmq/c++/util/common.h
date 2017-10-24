@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <inttypes.h>
+#include <map>
 
 const std::string HOST_IP = "127.0.0.1";
 //const std::string HOST_IP = "119.23.49.157";
@@ -33,4 +34,5 @@ void microsleep(int usec);
 
 uint64_t now_us(void);
 
+typedef std::map<std::string, std::string> key_value_t;
 #endif
