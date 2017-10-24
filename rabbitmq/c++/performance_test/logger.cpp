@@ -22,9 +22,9 @@ int main(int argc, char *argv[])
     rabbitMQ.queue_declare_and_bind_and_consume(ERR_QUEUE_NAME, false, true, false, LOG_EXCHANGE_NAME, "error");
     rabbitMQ.queue_declare_and_bind_and_consume(WARN_QUEUE_NAME, false, true, false, LOG_EXCHANGE_NAME, "warn");
     rabbitMQ.queue_declare_and_bind_and_consume(INFO_QUEUE_NAME, false, true, false, LOG_EXCHANGE_NAME, "info");
-    rabbitMQ.rabbit_consume_loop();
+    rabbitMQ.consume_loop();
 
-    rabbitMQ.rabbit_close();
+    rabbitMQ.close();
 
     return 0;
 }
