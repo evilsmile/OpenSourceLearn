@@ -17,13 +17,14 @@ int main(int argc, char *argv[])
 
     int send_cnt = SEND_MSG_CNT;
 
-    amqp_connection_state_t conn;
+    RabbitMQ rabbitMQ(USER, PASSWD, HOST_IP, HOST_PORT, CHANNEL_ID);
+    rabbitMQ.set_ratelimit(rate_limit);
 
-    rabbit_init(conn, USER, PASSWD, HOST_IP, HOST_PORT, CHANNEL_ID);
+    std::string msg = "oooo";
 
-    rabbit_publish(conn, EXCHANGE_NAME, QUEUE_NAME, ROUTER_NAME, CHANNEL_ID, rate_limit, send_cnt);
+    rabbitMQ.rabbit_publish(EXCHANGE_NAME, QUEUE_NAME, ROUTER_NAME, msg, send_cnt);
 
-    rabbit_close(conn);
+    rabbitMQ.rabbit_close();
    
     return 0;
 }

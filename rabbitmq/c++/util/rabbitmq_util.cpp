@@ -1,29 +1,19 @@
 #include "common.h"
 #include "rabbitmq_util.h"
 
-static bool bConsumeAck = true;
-
-void openConsumeAck()
-{
-    bConsumeAck = true;
-}
-
-void closeConsumeAck()
-{
-    bConsumeAck = false;
-}
-
-void rabbit_init(amqp_connection_state_t& conn, 
-                 const std::string& username, 
+RabbitMQ::RabbitMQ(const std::string& username, 
                  const std::string& password, 
                  const std::string& hostip, 
                  int port,
                  int channel_id
                  )
+    : _channel_id(channel_id),
+    _rate_limit(5000),
+    _ack_flag(true)
 {
-    conn = amqp_new_connection();
+    _conn = amqp_new_connection();
 
-    amqp_socket_t* pSocket = amqp_tcp_socket_new(conn);
+    amqp_socket_t* pSocket = amqp_tcp_socket_new(_conn);
     if (pSocket == NULL) {
         ABORT("amqp create socket failed.");
     }
@@ -33,26 +23,23 @@ void rabbit_init(amqp_connection_state_t& conn,
         ABORT("amqp open socket failed.");
     }
 
-    amqp_rpc_reply_t reply = amqp_login(conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, username.c_str(), password.c_str());
+    amqp_rpc_reply_t reply = amqp_login(_conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, username.c_str(), password.c_str());
     if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
         ABORT("amqp login failed.");
     }
 
-    amqp_channel_open(conn, channel_id);
-    check_amqp_reply(conn, "amqp open channel failed.");
+    amqp_channel_open(_conn, _channel_id);
+    check_amqp_reply("amqp open channel failed.");
 }
 
-void exchange_declare(amqp_connection_state_t& conn, 
-                      const std::string& exchange_name,
+void RabbitMQ::exchange_declare(const std::string& exchange_name,
                       const std::string& exchange_type,
                       bool durable, 
-                      bool auto_delete,
-                      int channel_id
-        )
+                      bool auto_delete)
 {
 
-    amqp_exchange_declare(conn, /* state */
-                          channel_id,    /* channel */
+    amqp_exchange_declare(_conn, /* state */
+                          _channel_id,    /* channel */
                           amqp_cstring_bytes(exchange_name.c_str()),  /* exchange */
                           amqp_cstring_bytes(exchange_type.c_str()),  /* type */
                           0,          /* passive */
@@ -60,64 +47,62 @@ void exchange_declare(amqp_connection_state_t& conn,
                           auto_delete?1:0,          /* auto_delete */
                           0,    /* internal */
                           amqp_empty_table);
-    check_amqp_reply(conn, "amqp declare exchange failed.");
+    check_amqp_reply("amqp declare exchange failed.");
     std::cout << "Exchange '" << exchange_name << "' declared." << std::endl;
 }
 
-void queue_declare_and_bind_and_consume(amqp_connection_state_t& conn, 
-                      const std::string& queue_name,
+void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
                       bool durable, 
                       bool exclusive, 
                       bool auto_delete,
-                      int channel_id,
                       const std::string& exchange_name,
                       const std::string& route_key
         )
 {
-     amqp_queue_declare(conn,              /* state */
-                       channel_id,        /* channel */
+     amqp_queue_declare(_conn,              /* state */
+                       _channel_id,        /* channel */
                        amqp_cstring_bytes(queue_name.c_str()),  /* queue */
                        0,       /* passive */
                        durable?1:0,       /* durable */
                        exclusive?1:0,       /* exclusive */
                        auto_delete?1:0,       /* auto_delete */
                        amqp_empty_table);
-    check_amqp_reply(conn, "Declaring queue");
+    check_amqp_reply("Declaring queue");
     std::cout << "Queue '" << queue_name << "' declared." << std::endl;
-    amqp_queue_bind(conn,
-                    channel_id,
+    amqp_queue_bind(_conn,
+                    _channel_id,
                     amqp_cstring_bytes(queue_name.c_str()),
                     amqp_cstring_bytes(exchange_name.c_str()),
                     amqp_cstring_bytes(route_key.c_str()),
                     amqp_empty_table);
-    check_amqp_reply(conn, "amqp bind queue failed.");
+    check_amqp_reply("amqp bind queue failed.");
     std::cout << "Queue '" << queue_name << "' binded." << std::endl;
 
-    amqp_basic_qos(conn, channel_id, 0, 1, 0);
+    amqp_basic_qos(_conn, _channel_id, 0, 1, 0);
 
-    amqp_basic_consume(conn,        /* connection */
-                       channel_id,  /* channel */
+    amqp_basic_consume(_conn,        /* connection */
+                       _channel_id,  /* channel */
                        amqp_cstring_bytes(queue_name.c_str()),  /* queue */
                        amqp_empty_bytes,     /* consumer_tag */
                        0,       /* no_local */
-                       (bConsumeAck? 0 : 1),       /* no_ack */
+                       (_ack_flag? 0 : 1),       /* no_ack */
                        exclusive?1:0,       /* exclusive */
                        amqp_empty_table    /* argument */
                        );
-    check_amqp_reply(conn, "amqp basic consume failed.");
+    check_amqp_reply("amqp basic consume failed.");
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
 }
 
-void rabbit_close(amqp_connection_state_t& conn)
+void RabbitMQ::rabbit_close()
 {
-    amqp_channel_close(conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
-    amqp_connection_close(conn, AMQP_REPLY_SUCCESS);
-    amqp_destroy_connection(conn);
+    amqp_channel_close(_conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
+    amqp_connection_close(_conn, AMQP_REPLY_SUCCESS);
+    amqp_destroy_connection(_conn);
 }
 
-void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
+void RabbitMQ::rabbit_consume_loop()
 {
-    std::cout << "rate limit: " << rate_limit << ", consume_ack: " << (bConsumeAck?"true":"false") << std::endl;
+    std::cout << "rate limit: " << _rate_limit << ", consume_ack: " << (_ack_flag?"true":"false") << std::endl;
     amqp_rpc_reply_t reply;
     
     int recv = 0;
@@ -131,7 +116,7 @@ void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
     while (true) {
         uint64_t now = now_us();
         // 限流
-        if (recv_this_sec >= rate_limit) {
+        if (recv_this_sec >= _rate_limit) {
             while (now < next_sec) {
                 // 2ms
                 microsleep(2000);
@@ -157,12 +142,12 @@ void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
         amqp_envelope_t envelope;
         memset(&envelope, 0, sizeof(envelope));
 
-        amqp_maybe_release_buffers(conn);
+        amqp_maybe_release_buffers(_conn);
 
         struct timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 20 * 1000; // 20s
-        reply = amqp_consume_message(conn, &envelope, &tv, 0);
+        reply = amqp_consume_message(_conn, &envelope, &tv, 0);
 
         switch(reply.reply_type) {
             case AMQP_RESPONSE_NORMAL:
@@ -195,34 +180,24 @@ void rabbit_consume_loop(amqp_connection_state_t& conn, int rate_limit)
             << std::endl;
             */
 
-        if (bConsumeAck) {
-            amqp_basic_ack(conn, channelid, deliverytag, 0 /* multiple */);
+        if (_ack_flag) {
+            amqp_basic_ack(_conn, channelid, deliverytag, 0 /* multiple */);
         }
         ++recv_this_sec;
         amqp_destroy_envelope(&envelope);
     }
 }
 
-void rabbit_publish(amqp_connection_state_t conn,
-                       const std::string& exchange_name,
+void RabbitMQ::rabbit_publish(const std::string& exchange_name,
                        const std::string& queue_name,
                        const std::string& route_key,
-                       int channel_id,
-                       int rate_limit,
+                       const std::string& msg,
                        int msg_cnt)
 {
-    char message[1024] = {0};
     amqp_bytes_t message_bytes;
 
-    memset(message, '0', sizeof(message));
-    /*
-    for (int i = 0; i < (int)sizeof(message); ++i) {
-        message[i] = ('0' + i%10)&0xff;
-    }
-    */
-
-    message_bytes.len = sizeof(message);
-    message_bytes.bytes = message;
+    message_bytes.len = msg.size();
+    message_bytes.bytes = (void*)(msg.c_str());
 
     int sent = 0;
     int previous_sent = 0;
@@ -232,13 +207,13 @@ void rabbit_publish(amqp_connection_state_t conn,
     uint64_t start_sec = start_time;
     uint64_t next_sec = start_time + SUMMARY_EVERY_US;
 
-    std::cout << "rate_limit: " << rate_limit << std::endl;
+    std::cout << "rate_limit: " << _rate_limit << std::endl;
     for (int i = 0; i < msg_cnt; ++i) {
 
         uint64_t now = now_us();
 
         // 限流
-        if (sent_this_sec >= rate_limit) {
+        if (sent_this_sec >= _rate_limit) {
             while (now < next_sec) {
                 // 2ms
                 microsleep(2000);
@@ -259,7 +234,7 @@ void rabbit_publish(amqp_connection_state_t conn,
             next_sec = start_sec + SUMMARY_EVERY_US;
         }
 
-        amqp_basic_publish(conn,                          /* state */
+        amqp_basic_publish(_conn,                          /* state */
                            CHANNEL_ID,                    /* channel */
                            amqp_cstring_bytes(exchange_name.c_str()), /* exchange */
                            amqp_cstring_bytes(route_key.c_str()),   /* routekey */
@@ -268,7 +243,7 @@ void rabbit_publish(amqp_connection_state_t conn,
                            NULL,             /* properties */
                            message_bytes     /* body */
                            );
-        check_amqp_reply(conn, "amqp basic publish");
+        check_amqp_reply("amqp basic publish");
         ++sent;
         ++sent_this_sec;
 
@@ -283,3 +258,64 @@ void rabbit_publish(amqp_connection_state_t conn,
         printf("Overall messages-per-second: %g\n", (msg_cnt/(total_delta / 1000000.0)));
     }
 }
+
+void RabbitMQ::openConsumeAck()
+{
+    _ack_flag = true;
+}
+
+void RabbitMQ::closeConsumeAck()
+{
+    _ack_flag = false;
+}
+
+void RabbitMQ::set_ratelimit(int rate_limit)
+{
+    _rate_limit = rate_limit;
+}
+
+void RabbitMQ::check_amqp_reply(const std::string& show_tip)
+{
+    amqp_rpc_reply_t reply = amqp_get_rpc_reply(_conn);
+
+    switch (reply.reply_type) {
+        case AMQP_RESPONSE_NORMAL:
+            return;
+
+        case AMQP_RESPONSE_NONE:
+            fprintf(stderr, "%s: missing RPC reply type!\n", show_tip.c_str());
+            break;
+
+        case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+            fprintf(stderr, "%s: %s\n", show_tip.c_str(), amqp_error_string2(reply.library_error));
+            break;
+
+        case AMQP_RESPONSE_SERVER_EXCEPTION:
+            switch (reply.reply.id) {
+                case AMQP_CONNECTION_CLOSE_METHOD: 
+                    {
+                        amqp_connection_close_t *m = (amqp_connection_close_t *) reply.reply.decoded;
+                        fprintf(stderr, "%s: server connection error %uh, message: %.*s\n",
+                                show_tip.c_str(),
+                                m->reply_code,
+                                (int) m->reply_text.len, (char *) m->reply_text.bytes);
+                        break;
+                    }
+                case AMQP_CHANNEL_CLOSE_METHOD: 
+                    {
+                        amqp_channel_close_t *m = (amqp_channel_close_t *) reply.reply.decoded;
+                        fprintf(stderr, "%s: server channel error %uh, message: %.*s\n",
+                                show_tip.c_str(),
+                                m->reply_code,
+                                (int) m->reply_text.len, (char *) m->reply_text.bytes);
+                        break;
+                    }
+                default:
+                    fprintf(stderr, "%s: unknown server error, method id 0x%08X\n", show_tip.c_str(), reply.reply.id);
+                    break;
+            }
+            break;          
+    }
+    ABORT(show_tip);
+}
+

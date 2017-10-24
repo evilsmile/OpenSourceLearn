@@ -16,16 +16,15 @@ int main(int argc, char *argv[])
         rate_limit = atoi(argv[1]);
     }
 
-    amqp_connection_state_t conn;
+    RabbitMQ rabbitMQ(USER, PASSWD, HOST_IP, HOST_PORT, LOG_CHANNEL_ID);
+    rabbitMQ.set_ratelimit(rate_limit);
 
-    rabbit_init(conn, USER, PASSWD, HOST_IP, HOST_PORT, LOG_CHANNEL_ID);
+    rabbitMQ.queue_declare_and_bind_and_consume(ERR_QUEUE_NAME, false, true, false, LOG_EXCHANGE_NAME, "error");
+    rabbitMQ.queue_declare_and_bind_and_consume(WARN_QUEUE_NAME, false, true, false, LOG_EXCHANGE_NAME, "warn");
+    rabbitMQ.queue_declare_and_bind_and_consume(INFO_QUEUE_NAME, false, true, false, LOG_EXCHANGE_NAME, "info");
+    rabbitMQ.rabbit_consume_loop();
 
-    queue_declare_and_bind_and_consume(conn, ERR_QUEUE_NAME, false, true, false, LOG_CHANNEL_ID, LOG_EXCHANGE_NAME, "error");
-    queue_declare_and_bind_and_consume(conn, WARN_QUEUE_NAME, false, true, false, LOG_CHANNEL_ID, LOG_EXCHANGE_NAME, "warn");
-    queue_declare_and_bind_and_consume(conn, INFO_QUEUE_NAME, false, true, false, LOG_CHANNEL_ID, LOG_EXCHANGE_NAME, "info");
-    rabbit_consume_loop(conn, rate_limit);
-
-    rabbit_close(conn);
+    rabbitMQ.rabbit_close();
 
     return 0;
 }
