@@ -2,6 +2,7 @@
 #include <ctime>
 
 #include "common.h"
+#include <signal.h>
 
 void microsleep(int usec)
 {
@@ -18,5 +19,4 @@ uint64_t now_us(void)
 
     return (uint64_t) tv.tv_sec * 1000000 + (uint64_t)tv.tv_usec;
 }
-
 

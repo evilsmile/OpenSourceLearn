@@ -8,12 +8,22 @@
 class RabbitMQ 
 {
     public:
+        RabbitMQ(){}
+
         RabbitMQ(const std::string& username, 
                 const std::string& password, 
                 const std::string& hostip, 
                 int port,
                 int channel_id
                 );
+
+        bool init(const std::string& username, 
+                const std::string& password, 
+                const std::string& hostip, 
+                int port,
+                int channel_id
+                );
+
 
         void exchange_declare(const std::string& exchange_name,
                 const std::string& exchange_type,
@@ -27,22 +37,28 @@ class RabbitMQ
                 const std::string& exchange_name,
                 const std::string& route_key);
 
-        void rabbit_publish(const std::string& exchange_name,
+        void publish(const std::string& exchange_name,
                 const std::string& queue_name,
                 const std::string& route_key,
                 const std::string& msg,
                 int msg_cnt);
 
-        void rabbit_consume_loop();
+        void consume_loop();
 
-        void rabbit_close();
+        void close();
 
-        void openConsumeAck();
-        void closeConsumeAck();
+        void check_amqp_reply(const std::string& show_tip);
+
+        // Adjust params
+        void enable_consume_ack();
+        void disable_consume_ack();
 
         void set_ratelimit(int rate_limit);
 
-        void check_amqp_reply(const std::string& show_tip);
+        void set_prefetchcnt(uint32_t prefetch_size);
+
+    private:
+        void _set_default_param();
 
     private:
         amqp_connection_state_t _conn; 
@@ -50,6 +66,7 @@ class RabbitMQ
 
         int _rate_limit;
         bool _ack_flag;
+        uint32_t _prefetch_cnt;
 };
 
 #endif

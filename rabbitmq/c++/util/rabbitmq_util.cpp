@@ -7,10 +7,9 @@ RabbitMQ::RabbitMQ(const std::string& username,
                  int port,
                  int channel_id
                  )
-    : _channel_id(channel_id),
-    _rate_limit(5000),
-    _ack_flag(true)
+    : _channel_id(channel_id)
 {
+    _set_default_param();
     _conn = amqp_new_connection();
 
     amqp_socket_t* pSocket = amqp_tcp_socket_new(_conn);
@@ -30,6 +29,46 @@ RabbitMQ::RabbitMQ(const std::string& username,
 
     amqp_channel_open(_conn, _channel_id);
     check_amqp_reply("amqp open channel failed.");
+}
+
+bool RabbitMQ::init(const std::string& username, 
+                 const std::string& password, 
+                 const std::string& hostip, 
+                 int port,
+                 int channel_id
+                 )
+{
+    _set_default_param();
+
+    _channel_id = channel_id;
+    _conn = amqp_new_connection();
+
+    amqp_socket_t* pSocket = amqp_tcp_socket_new(_conn);
+    if (pSocket == NULL) {
+        ABORT("amqp create socket failed.");
+    }
+
+    int state = amqp_socket_open(pSocket, hostip.c_str(), port);
+    if (state < 0)  {
+        ABORT("amqp open socket failed.");
+    }
+
+    amqp_rpc_reply_t reply = amqp_login(_conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, username.c_str(), password.c_str());
+    if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
+        ABORT("amqp login failed.");
+    }
+
+    amqp_channel_open(_conn, _channel_id);
+    check_amqp_reply("amqp open channel failed.");
+
+    return true;
+}
+
+void RabbitMQ::_set_default_param(void)
+{
+    _rate_limit = 5000;
+    _ack_flag = true;
+    _prefetch_cnt = 1;
 }
 
 void RabbitMQ::exchange_declare(const std::string& exchange_name,
@@ -78,7 +117,11 @@ void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
     check_amqp_reply("amqp bind queue failed.");
     std::cout << "Queue '" << queue_name << "' binded." << std::endl;
 
-    amqp_basic_qos(_conn, _channel_id, 0, 1, 0);
+    amqp_basic_qos(_conn, 
+                   _channel_id,
+                   0, /* prefetch_size */
+                   _prefetch_cnt, /* prefetch_count */
+                   0 /* global */);
 
     amqp_basic_consume(_conn,        /* connection */
                        _channel_id,  /* channel */
@@ -93,14 +136,14 @@ void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
 }
 
-void RabbitMQ::rabbit_close()
+void RabbitMQ::close()
 {
     amqp_channel_close(_conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
     amqp_connection_close(_conn, AMQP_REPLY_SUCCESS);
     amqp_destroy_connection(_conn);
 }
 
-void RabbitMQ::rabbit_consume_loop()
+void RabbitMQ::consume_loop()
 {
     std::cout << "rate limit: " << _rate_limit << ", consume_ack: " << (_ack_flag?"true":"false") << std::endl;
     amqp_rpc_reply_t reply;
@@ -188,7 +231,7 @@ void RabbitMQ::rabbit_consume_loop()
     }
 }
 
-void RabbitMQ::rabbit_publish(const std::string& exchange_name,
+void RabbitMQ::publish(const std::string& exchange_name,
                        const std::string& queue_name,
                        const std::string& route_key,
                        const std::string& msg,
@@ -259,12 +302,12 @@ void RabbitMQ::rabbit_publish(const std::string& exchange_name,
     }
 }
 
-void RabbitMQ::openConsumeAck()
+void RabbitMQ::enable_consume_ack()
 {
     _ack_flag = true;
 }
 
-void RabbitMQ::closeConsumeAck()
+void RabbitMQ::disable_consume_ack()
 {
     _ack_flag = false;
 }
@@ -272,6 +315,11 @@ void RabbitMQ::closeConsumeAck()
 void RabbitMQ::set_ratelimit(int rate_limit)
 {
     _rate_limit = rate_limit;
+}
+
+void RabbitMQ::set_prefetchcnt(uint32_t prefetch_count)
+{
+    _prefetch_cnt = prefetch_count;
 }
 
 void RabbitMQ::check_amqp_reply(const std::string& show_tip)

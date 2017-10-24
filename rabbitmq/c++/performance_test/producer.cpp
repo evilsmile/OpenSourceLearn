@@ -20,6 +20,8 @@ static void ctrlc_handler(int)
 void ctrl_c(void)
 {
     signal(SIGTERM, ctrlc_handler);    
+    signal(SIGINT, ctrlc_handler);    
+    signal(SIGQUIT, ctrlc_handler);    
 }
 
 int main(int argc, char *argv[])
@@ -29,7 +31,7 @@ int main(int argc, char *argv[])
         rate_limit = atoi(argv[1]);
     }
 
-    int send_cnt = SEND_MSG_CNT;
+    ctrl_c();
 
     ConfigParser config_parser;
     if (config_parser.init("../config/config.txt") == false) {
@@ -45,7 +47,8 @@ int main(int argc, char *argv[])
 
     rabbitMQ.set_ratelimit(rate_limit);
 
-    std::string msg = "oooo";
+    std::string msg = "phone=18589060708&clientId=b01221&smsId=a0b3d8b5-554c-4056-ab3a-1b4960c7e60d&userName=aWFuX3Rlc3Q=&content=IOadpeS6hg==&sid=&smsfrom=6&smsType=0&paytype=1&sign=5pGp5oucLui9pg==&userextpendport=&signextendport=&showsigntype=1&accessid=1001552&csid=1008552&csdate=20171020174342&area=97&channelid=3893&salefee=0.000000&costfee=0.200000&ucpaasport=29&operater=2&signport_ex=&userextno_ex=&showsigntype_ex=1&ids=73a641a6-ce60-44c8-8d06-2b79a0c5f00f&process_times=1&oauth_url=&oauth_post_data=&templateid=&channel_tempid=&temp_params=";
+    int send_cnt = 2000000;
 
     rabbitMQ.publish(EXCHANGE_NAME, QUEUE_NAME, ROUTER_NAME, msg, send_cnt);
 

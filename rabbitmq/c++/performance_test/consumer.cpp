@@ -41,6 +41,8 @@ int main(int argc, char *argv[])
     int host_port = config_parser.getInt32("rabbitmq_port", -1);
 
     rabbitMQ.init(user, passwd, host_ip, host_port, CHANNEL_ID);
+
+    // Param set
     rabbitMQ.set_ratelimit(rate_limit);
 
     rabbitMQ.exchange_declare(EXCHANGE_NAME, EXCHANGE_TYPE, true, false);
