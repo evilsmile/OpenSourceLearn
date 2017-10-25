@@ -1,7 +1,7 @@
-#include "common.h"
-#include "rabbitmq_util.h"
+#include "mqthread.h"
 
-RabbitMQ::RabbitMQ(const std::string& username, 
+
+RabbitMQThread::RabbitMQThread(const std::string& username, 
                  const std::string& password, 
                  const std::string& hostip, 
                  int port,
@@ -31,7 +31,12 @@ RabbitMQ::RabbitMQ(const std::string& username,
     check_amqp_reply("amqp open channel failed.");
 }
 
-bool RabbitMQ::init(const std::string& username, 
+RabbitMQThread::~RabbitMQThread()
+{
+    close();
+}
+
+bool RabbitMQThread::init(const std::string& username, 
                  const std::string& password, 
                  const std::string& hostip, 
                  int port,
@@ -64,66 +69,46 @@ bool RabbitMQ::init(const std::string& username,
     return true;
 }
 
-void RabbitMQ::_set_default_param(void)
+void RabbitMQThread::_set_default_param(void)
 {
     _rate_limit = 5000;
     _ack_flag = true;
     _prefetch_cnt = 1;
     _running = true;
-    _fake_job_time_ms = 0;
+    _ptr_worker_thread = NULL;
 }
 
-void RabbitMQ::set_job_time_ms(uint32_t ms)
+bool RabbitMQThread::run()
 {
-    _fake_job_time_ms = ms;
+    if (pthread_create(&_tid, NULL, thread_start, (void*)this) < 0) {
+        std::cerr << "create mqthread failed.\n";
+        return false;
+    }
+
+    return true;
 }
 
-void RabbitMQ::exchange_declare(const std::string& exchange_name,
-                      const std::string& exchange_type,
-                      bool durable, 
-                      bool auto_delete)
+void *RabbitMQThread::thread_start(void *arg)
 {
+    if (arg == NULL) {
+        std::cerr << "arg is NULL" << std::endl;
+        return NULL;
+    }
 
-    amqp_exchange_declare(_conn, /* state */
-                          _channel_id,    /* channel */
-                          amqp_cstring_bytes(exchange_name.c_str()),  /* exchange */
-                          amqp_cstring_bytes(exchange_type.c_str()),  /* type */
-                          0,          /* passive */
-                          durable?1:0,          /* durable */
-                          auto_delete?1:0,          /* auto_delete */
-                          0,    /* internal */
-                          amqp_empty_table);
-    check_amqp_reply("amqp declare exchange failed.");
-    std::cout << "Exchange '" << exchange_name << "' declared." << std::endl;
+    std::cout << "mqthread consume start...." << std::endl;
+    RabbitMQThread* ptr_mqthread = (RabbitMQThread*)arg;
+    ptr_mqthread->consume_loop();
+
+    return NULL;
 }
 
-void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
-                      bool durable, 
-                      bool exclusive, 
-                      bool auto_delete,
-                      const std::string& exchange_name,
-                      const std::string& route_key
-        )
+void RabbitMQThread::set_workthread(Thread *ptr_workthread)
 {
-     amqp_queue_declare(_conn,              /* state */
-                       _channel_id,        /* channel */
-                       amqp_cstring_bytes(queue_name.c_str()),  /* queue */
-                       0,       /* passive */
-                       durable?1:0,       /* durable */
-                       exclusive?1:0,       /* exclusive */
-                       auto_delete?1:0,       /* auto_delete */
-                       amqp_empty_table);
-    check_amqp_reply("Declaring queue");
-    std::cout << "Queue '" << queue_name << "' declared." << std::endl;
-    amqp_queue_bind(_conn,
-                    _channel_id,
-                    amqp_cstring_bytes(queue_name.c_str()),
-                    amqp_cstring_bytes(exchange_name.c_str()),
-                    amqp_cstring_bytes(route_key.c_str()),
-                    amqp_empty_table);
-    check_amqp_reply("amqp bind queue failed.");
-    std::cout << "Queue '" << queue_name << "' binded." << std::endl;
+    this->_ptr_worker_thread = ptr_workthread;
+}
 
+void RabbitMQThread::set_queue_consume(const std::string& queue_name, bool exclusive)
+{
     amqp_basic_qos(_conn, 
                    _channel_id,
                    0, /* prefetch_size */
@@ -143,19 +128,19 @@ void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
 }
 
-void RabbitMQ::stop()
+void RabbitMQThread::stop()
 {
     _running = false;
 }
 
-void RabbitMQ::close()
+void RabbitMQThread::close()
 {
     amqp_channel_close(_conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
     amqp_connection_close(_conn, AMQP_REPLY_SUCCESS);
     amqp_destroy_connection(_conn);
 }
 
-void RabbitMQ::consume_loop(Thread* ptr_work_thread)
+void RabbitMQThread::consume_loop()
 {
     std::cout << "rate limit: " << _rate_limit << ", consume_ack: " << (_ack_flag?"true":"false") << std::endl;
     amqp_rpc_reply_t reply;
@@ -222,14 +207,13 @@ void RabbitMQ::consume_loop(Thread* ptr_work_thread)
 
         std::string data((char*)envelope.message.body.bytes, envelope.message.body.len);
 
-        if (ptr_work_thread != NULL) {
-            ptr_work_thread->add_request(data);
+        if (_ptr_worker_thread != NULL) {
+            _ptr_worker_thread->add_request(data);
         }
 
         int channelid = envelope.channel;
         int deliverytag = envelope.delivery_tag;
 
-//        std::cout << deliverytag << " ";
         /*
         std::cout << "Channel: " << channelid << ", "
             << "DeliveryTag: " << deliverytag << ", "
@@ -243,15 +227,12 @@ void RabbitMQ::consume_loop(Thread* ptr_work_thread)
             amqp_basic_ack(_conn, channelid, deliverytag, 0 /* multiple */);
         }
 
-        if (_fake_job_time_ms > 0) {
-            microsleep(_fake_job_time_ms * 1000);
-        }
         ++recv_this_sec;
         amqp_destroy_envelope(&envelope);
     }
 }
 
-void RabbitMQ::publish(const std::string& exchange_name,
+void RabbitMQThread::publish(const std::string& exchange_name,
                        const std::string& queue_name,
                        const std::string& route_key,
                        const std::string& msg,
@@ -321,27 +302,32 @@ void RabbitMQ::publish(const std::string& exchange_name,
     }
 }
 
-void RabbitMQ::enable_consume_ack()
+bool RabbitMQThread::join()
+{
+    pthread_join(_tid, NULL);
+}
+
+void RabbitMQThread::enable_consume_ack()
 {
     _ack_flag = true;
 }
 
-void RabbitMQ::disable_consume_ack()
+void RabbitMQThread::disable_consume_ack()
 {
     _ack_flag = false;
 }
 
-void RabbitMQ::set_ratelimit(int rate_limit)
+void RabbitMQThread::set_ratelimit(int rate_limit)
 {
     _rate_limit = rate_limit;
 }
 
-void RabbitMQ::set_prefetchcnt(uint32_t prefetch_count)
+void RabbitMQThread::set_prefetchcnt(uint32_t prefetch_count)
 {
     _prefetch_cnt = prefetch_count;
 }
 
-void RabbitMQ::check_amqp_reply(const std::string& show_tip)
+void RabbitMQThread::check_amqp_reply(const std::string& show_tip)
 {
     amqp_rpc_reply_t reply = amqp_get_rpc_reply(_conn);
 
