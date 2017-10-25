@@ -1,7 +1,7 @@
 DEP_LIBS=../libs/libutil.a ../libs/librabbitmq.a
 
-CXXFLAGS=-g -Wall -I../util/ -I./include
-LDFLAGS=${DEP_LIBS}
+CXXFLAGS=-g -Wall -I../util/ -I../include
+LDFLAGS=${DEP_LIBS} -lrt
 #LDFLAGS=-lrabbitmq ${DEP_LIBS}
 CC=g++
 
