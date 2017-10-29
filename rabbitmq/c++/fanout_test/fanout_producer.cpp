@@ -7,6 +7,7 @@
 #include "common.h"
 #include "names.h"
 #include "rabbitmq_util.h"
+#include "mqthread.h"
 
 int main(int argc, char *argv[])
 {
@@ -21,12 +22,12 @@ int main(int argc, char *argv[])
 
     int send_cnt = SEND_MSG_CNT;
 
-    RabbitMQ rabbitMQ(USER, PASSWD, HOST_IP, HOST_PORT, CHANNEL_ID);
-    rabbitMQ.set_ratelimit(rate_limit);
+    RabbitMQThread rabbitMQThread(USER, PASSWD, HOST_IP, HOST_PORT, LOCAL_CHANNEL_ID);
+    rabbitMQThread.set_ratelimit(rate_limit);
 
-    rabbitMQ.rabbit_publish(LOCAL_EXCHANGE, "", router_key, msg, send_cnt);
+    rabbitMQThread.publish(LOCAL_EXCHANGE, "", router_key, msg, send_cnt);
 
-    rabbitMQ.rabbit_close();
+    rabbitMQThread.close();
    
     return 0;
 }

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "names.h"
 #include "rabbitmq_util.h"
+#include "mqthread.h"
 
 int main(int argc, char *argv[])
 {
@@ -10,16 +11,15 @@ int main(int argc, char *argv[])
     }
 
     RabbitMQ rabbitMQ(USER, PASSWD, HOST_IP, HOST_PORT, LOCAL_CHANNEL_ID);
-    rabbitMQ.set_ratelimit(rate_limit);
-
     rabbitMQ.exchange_declare(LOCAL_EXCHANGE, LOCAL_EXCHANGE_TYPE, true, false);
-
     rabbitMQ.queue_declare_and_bind_and_consume(LOCAL_QUEUE_1, true, false, false, LOCAL_EXCHANGE, "");
     rabbitMQ.queue_declare_and_bind_and_consume(LOCAL_QUEUE_2, true, false, false, LOCAL_EXCHANGE, "");
+    rabbitMQ.close();
 
-    rabbitMQ.rabbit_consume_loop();
-
-    rabbitMQ.rabbit_close();
+    RabbitMQThread rabbitMQThread(USER, PASSWD, HOST_IP, HOST_PORT, LOCAL_CHANNEL_ID);
+    rabbitMQThread.set_ratelimit(rate_limit);
+    rabbitMQThread.consume_loop();
+    rabbitMQThread.close();
 
     return 0;
 }
