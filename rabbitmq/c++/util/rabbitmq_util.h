@@ -39,7 +39,6 @@ class RabbitMQ
                 const std::string& route_key);
 
         void publish(const std::string& exchange_name,
-                const std::string& queue_name,
                 const std::string& route_key,
                 const std::string& msg,
                 int msg_cnt);

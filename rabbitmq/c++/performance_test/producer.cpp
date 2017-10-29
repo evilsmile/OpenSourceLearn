@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 
     int send_cnt = 2000000;
 
-    rabbitMQ.publish(exchange, queue, router, msg, send_cnt);
+    rabbitMQ.publish(exchange, router, msg, send_cnt);
 
     rabbitMQ.close();
    

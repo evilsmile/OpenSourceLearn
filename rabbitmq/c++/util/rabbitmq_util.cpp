@@ -150,7 +150,7 @@ void RabbitMQ::stop()
 
 void RabbitMQ::close()
 {
-    amqp_channel_close(_conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
+    amqp_channel_close(_conn, _channel_id, AMQP_REPLY_SUCCESS);
     amqp_connection_close(_conn, AMQP_REPLY_SUCCESS);
     amqp_destroy_connection(_conn);
 }
@@ -252,7 +252,6 @@ void RabbitMQ::consume_loop(Thread* ptr_work_thread)
 }
 
 void RabbitMQ::publish(const std::string& exchange_name,
-                       const std::string& queue_name,
                        const std::string& route_key,
                        const std::string& msg,
                        int msg_cnt)
@@ -298,7 +297,7 @@ void RabbitMQ::publish(const std::string& exchange_name,
         }
 
         amqp_basic_publish(_conn,                          /* state */
-                           CHANNEL_ID,                    /* channel */
+                           _channel_id,                    /* channel */
                            amqp_cstring_bytes(exchange_name.c_str()), /* exchange */
                            amqp_cstring_bytes(route_key.c_str()),   /* routekey */
                            0,                /* mandatory */

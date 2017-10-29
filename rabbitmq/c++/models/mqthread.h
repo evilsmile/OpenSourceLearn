@@ -9,6 +9,18 @@
 
 #include "common.h"
 
+enum Role {
+    PUBLIHSER,
+    CONSUMER
+};
+
+typedef struct _st_publish_args {
+    std::string exchange_name;
+    std::string route_key;
+    std::string msg;
+    int msg_cnt;
+} st_publish_args_t;
+
 class RabbitMQThread
 {
     public:
@@ -31,15 +43,11 @@ class RabbitMQThread
                 );
 
         bool run();
-        bool join();
+        void join();
 
         static void* thread_start(void *arg);
 
-        void publish(const std::string& exchange_name,
-                const std::string& queue_name,
-                const std::string& route_key,
-                const std::string& msg,
-                int msg_cnt);
+        void publish();
 
         void set_workthread(Thread *ptr_workthread);
 
@@ -58,6 +66,8 @@ class RabbitMQThread
         void set_ratelimit(int rate_limit);
 
         void set_prefetchcnt(uint32_t prefetch_size);
+
+        void set_thread_role(Role role);
 
         void stop();
         
@@ -79,6 +89,10 @@ class RabbitMQThread
         uint32_t _prefetch_cnt;
 
         uint32_t _fake_job_time_ms;
+
+        st_publish_args_t _publish_args;
+
+        static Role _role;
 };
 
 #endif

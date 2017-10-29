@@ -1,5 +1,6 @@
 #include "mqthread.h"
 
+Role RabbitMQThread::_role = CONSUMER;
 
 RabbitMQThread::RabbitMQThread(const std::string& username, 
                  const std::string& password, 
@@ -7,28 +8,8 @@ RabbitMQThread::RabbitMQThread(const std::string& username,
                  int port,
                  int channel_id
                  )
-    : _channel_id(channel_id)
 {
-    _set_default_param();
-    _conn = amqp_new_connection();
-
-    amqp_socket_t* pSocket = amqp_tcp_socket_new(_conn);
-    if (pSocket == NULL) {
-        ABORT("amqp create socket failed.");
-    }
-
-    int state = amqp_socket_open(pSocket, hostip.c_str(), port);
-    if (state < 0)  {
-        ABORT("amqp open socket failed.");
-    }
-
-    amqp_rpc_reply_t reply = amqp_login(_conn, "/", 0, 131072, 0, AMQP_SASL_METHOD_PLAIN, username.c_str(), password.c_str());
-    if (reply.reply_type != AMQP_RESPONSE_NORMAL) {
-        ABORT("amqp login failed.");
-    }
-
-    amqp_channel_open(_conn, _channel_id);
-    check_amqp_reply("amqp open channel failed.");
+    this->init(username, password, hostip, port, channel_id);
 }
 
 RabbitMQThread::~RabbitMQThread()
@@ -76,6 +57,12 @@ void RabbitMQThread::_set_default_param(void)
     _prefetch_cnt = 1;
     _running = true;
     _ptr_worker_thread = NULL;
+    _role = CONSUMER;
+}
+
+void RabbitMQThread::set_thread_role(Role role)
+{
+    _role = role;
 }
 
 bool RabbitMQThread::run()
@@ -97,7 +84,12 @@ void *RabbitMQThread::thread_start(void *arg)
 
     std::cout << "mqthread consume start...." << std::endl;
     RabbitMQThread* ptr_mqthread = (RabbitMQThread*)arg;
-    ptr_mqthread->consume_loop();
+
+    if (_role == CONSUMER) {
+        ptr_mqthread->consume_loop();
+    } else {
+        ptr_mqthread->publish();
+    }
 
     return NULL;
 }
@@ -135,7 +127,7 @@ void RabbitMQThread::stop()
 
 void RabbitMQThread::close()
 {
-    amqp_channel_close(_conn, CHANNEL_ID, AMQP_REPLY_SUCCESS);
+    amqp_channel_close(_conn, _channel_id, AMQP_REPLY_SUCCESS);
     amqp_connection_close(_conn, AMQP_REPLY_SUCCESS);
     amqp_destroy_connection(_conn);
 }
@@ -232,16 +224,12 @@ void RabbitMQThread::consume_loop()
     }
 }
 
-void RabbitMQThread::publish(const std::string& exchange_name,
-                       const std::string& queue_name,
-                       const std::string& route_key,
-                       const std::string& msg,
-                       int msg_cnt)
+void RabbitMQThread::publish()
 {
     amqp_bytes_t message_bytes;
 
-    message_bytes.len = msg.size();
-    message_bytes.bytes = (void*)(msg.c_str());
+    message_bytes.len = _publish_args.msg.size();
+    message_bytes.bytes = (void*)(_publish_args.msg.c_str());
 
     int sent = 0;
     int previous_sent = 0;
@@ -252,7 +240,7 @@ void RabbitMQThread::publish(const std::string& exchange_name,
     uint64_t next_sec = start_time + SUMMARY_EVERY_US;
 
     std::cout << "rate_limit: " << _rate_limit << std::endl;
-    for (int i = 0; _running && i < msg_cnt; ++i) {
+    for (int i = 0; _running && i < _publish_args.msg_cnt; ++i) {
 
         uint64_t now = now_us();
 
@@ -278,10 +266,16 @@ void RabbitMQThread::publish(const std::string& exchange_name,
             next_sec = start_sec + SUMMARY_EVERY_US;
         }
 
+        amqp_bytes_t b_router_key = amqp_empty_bytes;
+        if (!_publish_args.route_key.empty()) {
+            b_router_key = amqp_cstring_bytes(_publish_args.route_key.c_str());
+        }
+
+        std::cout << "p"<<std::endl;
         amqp_basic_publish(_conn,                          /* state */
-                           CHANNEL_ID,                    /* channel */
-                           amqp_cstring_bytes(exchange_name.c_str()), /* exchange */
-                           amqp_cstring_bytes(route_key.c_str()),   /* routekey */
+                           _channel_id,                    /* channel */
+                           amqp_cstring_bytes(_publish_args.exchange_name.c_str()), /* exchange */
+                           b_router_key,   /* routekey */
                            0,                /* mandatory */
                            0,                /* immediate */
                            NULL,             /* properties */
@@ -302,7 +296,7 @@ void RabbitMQThread::publish(const std::string& exchange_name,
     }
 }
 
-bool RabbitMQThread::join()
+void RabbitMQThread::join()
 {
     pthread_join(_tid, NULL);
 }
