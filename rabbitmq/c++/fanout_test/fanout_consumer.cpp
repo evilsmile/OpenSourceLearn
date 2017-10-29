@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     MyWorkThread myWorker("fanout_worker");
     myWorker.start();
 
-    RabbitMQThread rabbitMQThread(USER, PASSWD, HOST_IP, HOST_PORT, LOCAL_CHANNEL_ID);
+    RabbitMQConsumerThread rabbitMQThread(USER, PASSWD, HOST_IP, HOST_PORT, LOCAL_CHANNEL_ID);
     rabbitMQThread.set_queue_consume(LOCAL_QUEUE_1, true);
     rabbitMQThread.set_queue_consume(LOCAL_QUEUE_2, true);
     rabbitMQThread.set_ratelimit(rate_limit);

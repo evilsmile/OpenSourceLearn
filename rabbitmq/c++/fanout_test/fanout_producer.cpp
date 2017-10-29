@@ -22,13 +22,29 @@ int main(int argc, char *argv[])
 
     int send_cnt = SEND_MSG_CNT;
 
+#if 0
     RabbitMQ rabbitMQ;
     rabbitMQ.init(USER, PASSWD, HOST_IP, HOST_PORT, LOCAL_CHANNEL_ID);
     rabbitMQ.set_ratelimit(rate_limit);
-
     rabbitMQ.publish(LOCAL_EXCHANGE, "", msg, send_cnt);
-
     rabbitMQ.close();
+#else
+    // 使用新线程发送
+    RabbitMQPublisherThread rabbitMQThread;
+    rabbitMQThread.init(USER, PASSWD, HOST_IP, HOST_PORT, LOCAL_CHANNEL_ID);
+    rabbitMQThread.set_ratelimit(rate_limit);
+
+    st_publish_args_t args;
+    args.msg_cnt = send_cnt;
+    args.msg = msg;
+    args.route_key = "";
+    args.exchange_name = LOCAL_EXCHANGE;
+    rabbitMQThread.set_thread_role(PUBLIHSER);
+    rabbitMQThread.set_publish_args(&args);
+    rabbitMQThread.run();
+    rabbitMQThread.join();
+
+#endif
    
     return 0;
 }

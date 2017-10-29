@@ -14,21 +14,14 @@ enum Role {
     CONSUMER
 };
 
-typedef struct _st_publish_args {
-    std::string exchange_name;
-    std::string route_key;
-    std::string msg;
-    int msg_cnt;
-} st_publish_args_t;
-
-class RabbitMQThread
+class RabbitMQThreadBase
 {
     public:
-        RabbitMQThread(){}
+        RabbitMQThreadBase(){}
 
-        ~RabbitMQThread();
+        ~RabbitMQThreadBase();
 
-        RabbitMQThread(const std::string& username, 
+        RabbitMQThreadBase(const std::string& username, 
                 const std::string& password, 
                 const std::string& hostip, 
                 int port,
@@ -47,37 +40,24 @@ class RabbitMQThread
 
         static void* thread_start(void *arg);
 
-        void publish();
-
-        void set_workthread(Thread *ptr_workthread);
-
-        void set_queue_consume(const std::string& queue_name, bool exclusive);
-
-        void consume_loop();
-
         void close();
 
         void check_amqp_reply(const std::string& show_tip);
 
-        // Adjust params
-        void enable_consume_ack();
-        void disable_consume_ack();
-
         void set_ratelimit(int rate_limit);
-
-        void set_prefetchcnt(uint32_t prefetch_size);
 
         void set_thread_role(Role role);
 
         void stop();
+
+        virtual void loop_handler() = 0;
         
-    private:
+    protected:
         void _set_default_param();
 
-    private:
+    protected:
         std::string _name;
         pthread_t _tid;
-        Thread *_ptr_worker_thread;
 
         amqp_connection_state_t _conn; 
         int _channel_id;
@@ -85,14 +65,73 @@ class RabbitMQThread
         bool _running;
 
         int _rate_limit;
-        bool _ack_flag;
-        uint32_t _prefetch_cnt;
-
-        uint32_t _fake_job_time_ms;
-
-        st_publish_args_t _publish_args;
 
         static Role _role;
+};
+
+//////////////////////////////////// Consumer ////////////////////////////
+class RabbitMQConsumerThread : public RabbitMQThreadBase
+{
+    public:
+        RabbitMQConsumerThread(){}
+        RabbitMQConsumerThread(const std::string& username, 
+                const std::string& password, 
+                const std::string& hostip, 
+                int port,
+                int channel_id
+                );
+
+        void set_workthread(Thread *ptr_workthread);
+        void set_queue_consume(const std::string& queue_name, bool exclusive);
+
+
+        // Adjust params
+        void enable_consume_ack();
+        void disable_consume_ack();
+
+    protected:
+        virtual void loop_handler();
+
+        void set_prefetchcnt(uint32_t prefetch_size);
+
+        void _set_default_param();
+
+    private:
+        Thread *_ptr_worker_thread;
+        bool _ack_flag;
+
+        uint32_t _prefetch_cnt;
+};
+
+//////////////////////////////// Publisher ///////////////////////////////
+typedef struct _st_publish_args {
+    std::string exchange_name;
+    std::string route_key;
+    std::string msg;
+    int msg_cnt;
+} st_publish_args_t;
+
+
+class RabbitMQPublisherThread : public RabbitMQThreadBase
+{
+    public:
+        RabbitMQPublisherThread(){}
+        RabbitMQPublisherThread(const std::string& username, 
+                const std::string& password, 
+                const std::string& hostip, 
+                int port,
+                int channel_id
+                );
+
+        void set_publish_args(st_publish_args_t* publish_args);
+        virtual void loop_handler();
+
+    protected:
+        void _set_default_param();
+
+    private:
+        st_publish_args_t* _p_publish_args;
+
 };
 
 #endif

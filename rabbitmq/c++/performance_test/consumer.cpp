@@ -7,7 +7,7 @@
 #include <signal.h>
 #include <unistd.h>
 
-RabbitMQThread rabbitMQThread;
+RabbitMQConsumerThread rabbitMQThread;
 RabbitMQ rabbitMQ;
 
 int rate_limit = RATE_LIMIT;

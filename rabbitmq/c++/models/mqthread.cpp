@@ -1,8 +1,8 @@
 #include "mqthread.h"
 
-Role RabbitMQThread::_role = CONSUMER;
+Role RabbitMQThreadBase::_role = CONSUMER;
 
-RabbitMQThread::RabbitMQThread(const std::string& username, 
+RabbitMQThreadBase::RabbitMQThreadBase(const std::string& username, 
                  const std::string& password, 
                  const std::string& hostip, 
                  int port,
@@ -12,12 +12,12 @@ RabbitMQThread::RabbitMQThread(const std::string& username,
     this->init(username, password, hostip, port, channel_id);
 }
 
-RabbitMQThread::~RabbitMQThread()
+RabbitMQThreadBase::~RabbitMQThreadBase()
 {
     close();
 }
 
-bool RabbitMQThread::init(const std::string& username, 
+bool RabbitMQThreadBase::init(const std::string& username, 
                  const std::string& password, 
                  const std::string& hostip, 
                  int port,
@@ -50,22 +50,20 @@ bool RabbitMQThread::init(const std::string& username,
     return true;
 }
 
-void RabbitMQThread::_set_default_param(void)
+void RabbitMQThreadBase::_set_default_param(void)
 {
     _rate_limit = 5000;
-    _ack_flag = true;
-    _prefetch_cnt = 1;
     _running = true;
-    _ptr_worker_thread = NULL;
-    _role = CONSUMER;
 }
 
-void RabbitMQThread::set_thread_role(Role role)
+void RabbitMQThreadBase::set_thread_role(Role role)
 {
     _role = role;
 }
 
-bool RabbitMQThread::run()
+
+
+bool RabbitMQThreadBase::run()
 {
     if (pthread_create(&_tid, NULL, thread_start, (void*)this) < 0) {
         std::cerr << "create mqthread failed.\n";
@@ -75,7 +73,7 @@ bool RabbitMQThread::run()
     return true;
 }
 
-void *RabbitMQThread::thread_start(void *arg)
+void *RabbitMQThreadBase::thread_start(void *arg)
 {
     if (arg == NULL) {
         std::cerr << "arg is NULL" << std::endl;
@@ -83,23 +81,97 @@ void *RabbitMQThread::thread_start(void *arg)
     }
 
     std::cout << "mqthread consume start...." << std::endl;
-    RabbitMQThread* ptr_mqthread = (RabbitMQThread*)arg;
+    RabbitMQThreadBase* ptr_mqthread = (RabbitMQThreadBase*)arg;
 
-    if (_role == CONSUMER) {
-        ptr_mqthread->consume_loop();
-    } else {
-        ptr_mqthread->publish();
-    }
+    ptr_mqthread->loop_handler();
 
     return NULL;
 }
 
-void RabbitMQThread::set_workthread(Thread *ptr_workthread)
+void RabbitMQThreadBase::stop()
+{
+    _running = false;
+}
+
+void RabbitMQThreadBase::close()
+{
+    amqp_channel_close(_conn, _channel_id, AMQP_REPLY_SUCCESS);
+    amqp_connection_close(_conn, AMQP_REPLY_SUCCESS);
+    amqp_destroy_connection(_conn);
+}
+
+void RabbitMQThreadBase::join()
+{
+    pthread_join(_tid, NULL);
+}
+
+void RabbitMQThreadBase::set_ratelimit(int rate_limit)
+{
+    _rate_limit = rate_limit;
+}
+
+void RabbitMQThreadBase::check_amqp_reply(const std::string& show_tip)
+{
+    amqp_rpc_reply_t reply = amqp_get_rpc_reply(_conn);
+
+    switch (reply.reply_type) {
+        case AMQP_RESPONSE_NORMAL:
+            return;
+
+        case AMQP_RESPONSE_NONE:
+            fprintf(stderr, "%s: missing RPC reply type!\n", show_tip.c_str());
+            break;
+
+        case AMQP_RESPONSE_LIBRARY_EXCEPTION:
+            fprintf(stderr, "%s: %s\n", show_tip.c_str(), amqp_error_string2(reply.library_error));
+            break;
+
+        case AMQP_RESPONSE_SERVER_EXCEPTION:
+            switch (reply.reply.id) {
+                case AMQP_CONNECTION_CLOSE_METHOD: 
+                    {
+                        amqp_connection_close_t *m = (amqp_connection_close_t *) reply.reply.decoded;
+                        fprintf(stderr, "%s: server connection error %uh, message: %.*s\n",
+                                show_tip.c_str(),
+                                m->reply_code,
+                                (int) m->reply_text.len, (char *) m->reply_text.bytes);
+                        break;
+                    }
+                case AMQP_CHANNEL_CLOSE_METHOD: 
+                    {
+                        amqp_channel_close_t *m = (amqp_channel_close_t *) reply.reply.decoded;
+                        fprintf(stderr, "%s: server channel error %uh, message: %.*s\n",
+                                show_tip.c_str(),
+                                m->reply_code,
+                                (int) m->reply_text.len, (char *) m->reply_text.bytes);
+                        break;
+                    }
+                default:
+                    fprintf(stderr, "%s: unknown server error, method id 0x%08X\n", show_tip.c_str(), reply.reply.id);
+                    break;
+            }
+            break;          
+    }
+    ABORT(show_tip);
+}
+
+//////////////////////////////////// Consumer ////////////////////////////
+RabbitMQConsumerThread::RabbitMQConsumerThread(const std::string& username, 
+                 const std::string& password, 
+                 const std::string& hostip, 
+                 int port,
+                 int channel_id
+                 )
+       : RabbitMQThreadBase(username, password, hostip, port, channel_id)
+{
+}
+
+void RabbitMQConsumerThread::set_workthread(Thread *ptr_workthread)
 {
     this->_ptr_worker_thread = ptr_workthread;
 }
 
-void RabbitMQThread::set_queue_consume(const std::string& queue_name, bool exclusive)
+void RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bool exclusive)
 {
     amqp_basic_qos(_conn, 
                    _channel_id,
@@ -120,19 +192,22 @@ void RabbitMQThread::set_queue_consume(const std::string& queue_name, bool exclu
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
 }
 
-void RabbitMQThread::stop()
+void RabbitMQConsumerThread::enable_consume_ack()
 {
-    _running = false;
+    _ack_flag = true;
 }
 
-void RabbitMQThread::close()
+void RabbitMQConsumerThread::disable_consume_ack()
 {
-    amqp_channel_close(_conn, _channel_id, AMQP_REPLY_SUCCESS);
-    amqp_connection_close(_conn, AMQP_REPLY_SUCCESS);
-    amqp_destroy_connection(_conn);
+    _ack_flag = false;
 }
 
-void RabbitMQThread::consume_loop()
+void RabbitMQConsumerThread::set_prefetchcnt(uint32_t prefetch_count)
+{
+    _prefetch_cnt = prefetch_count;
+}
+
+void RabbitMQConsumerThread::loop_handler()
 {
     std::cout << "rate limit: " << _rate_limit << ", consume_ack: " << (_ack_flag?"true":"false") << std::endl;
     amqp_rpc_reply_t reply;
@@ -224,12 +299,28 @@ void RabbitMQThread::consume_loop()
     }
 }
 
-void RabbitMQThread::publish()
+void RabbitMQConsumerThread::_set_default_param(void)
+{
+    RabbitMQThreadBase::_set_default_param();
+
+    _ptr_worker_thread = NULL;
+    _ack_flag = true;
+    _prefetch_cnt = 1;
+    _role = CONSUMER;
+}
+
+//////////////////////////////// Publisher ///////////////////////////////
+void RabbitMQPublisherThread::set_publish_args(st_publish_args_t* p_publish_args)
+{
+    _p_publish_args = p_publish_args;
+}
+
+void RabbitMQPublisherThread::loop_handler()
 {
     amqp_bytes_t message_bytes;
 
-    message_bytes.len = _publish_args.msg.size();
-    message_bytes.bytes = (void*)(_publish_args.msg.c_str());
+    message_bytes.len = _p_publish_args->msg.size();
+    message_bytes.bytes = (void*)(_p_publish_args->msg.c_str());
 
     int sent = 0;
     int previous_sent = 0;
@@ -240,7 +331,7 @@ void RabbitMQThread::publish()
     uint64_t next_sec = start_time + SUMMARY_EVERY_US;
 
     std::cout << "rate_limit: " << _rate_limit << std::endl;
-    for (int i = 0; _running && i < _publish_args.msg_cnt; ++i) {
+    for (int i = 0; _running && i < _p_publish_args->msg_cnt; ++i) {
 
         uint64_t now = now_us();
 
@@ -267,14 +358,13 @@ void RabbitMQThread::publish()
         }
 
         amqp_bytes_t b_router_key = amqp_empty_bytes;
-        if (!_publish_args.route_key.empty()) {
-            b_router_key = amqp_cstring_bytes(_publish_args.route_key.c_str());
+        if (!_p_publish_args->route_key.empty()) {
+            b_router_key = amqp_cstring_bytes(_p_publish_args->route_key.c_str());
         }
 
-        std::cout << "p"<<std::endl;
         amqp_basic_publish(_conn,                          /* state */
                            _channel_id,                    /* channel */
-                           amqp_cstring_bytes(_publish_args.exchange_name.c_str()), /* exchange */
+                           amqp_cstring_bytes(_p_publish_args->exchange_name.c_str()), /* exchange */
                            b_router_key,   /* routekey */
                            0,                /* mandatory */
                            0,                /* immediate */
@@ -296,73 +386,8 @@ void RabbitMQThread::publish()
     }
 }
 
-void RabbitMQThread::join()
+void RabbitMQPublisherThread::_set_default_param(void)
 {
-    pthread_join(_tid, NULL);
+    RabbitMQThreadBase::_set_default_param();
+    _role = PUBLIHSER;
 }
-
-void RabbitMQThread::enable_consume_ack()
-{
-    _ack_flag = true;
-}
-
-void RabbitMQThread::disable_consume_ack()
-{
-    _ack_flag = false;
-}
-
-void RabbitMQThread::set_ratelimit(int rate_limit)
-{
-    _rate_limit = rate_limit;
-}
-
-void RabbitMQThread::set_prefetchcnt(uint32_t prefetch_count)
-{
-    _prefetch_cnt = prefetch_count;
-}
-
-void RabbitMQThread::check_amqp_reply(const std::string& show_tip)
-{
-    amqp_rpc_reply_t reply = amqp_get_rpc_reply(_conn);
-
-    switch (reply.reply_type) {
-        case AMQP_RESPONSE_NORMAL:
-            return;
-
-        case AMQP_RESPONSE_NONE:
-            fprintf(stderr, "%s: missing RPC reply type!\n", show_tip.c_str());
-            break;
-
-        case AMQP_RESPONSE_LIBRARY_EXCEPTION:
-            fprintf(stderr, "%s: %s\n", show_tip.c_str(), amqp_error_string2(reply.library_error));
-            break;
-
-        case AMQP_RESPONSE_SERVER_EXCEPTION:
-            switch (reply.reply.id) {
-                case AMQP_CONNECTION_CLOSE_METHOD: 
-                    {
-                        amqp_connection_close_t *m = (amqp_connection_close_t *) reply.reply.decoded;
-                        fprintf(stderr, "%s: server connection error %uh, message: %.*s\n",
-                                show_tip.c_str(),
-                                m->reply_code,
-                                (int) m->reply_text.len, (char *) m->reply_text.bytes);
-                        break;
-                    }
-                case AMQP_CHANNEL_CLOSE_METHOD: 
-                    {
-                        amqp_channel_close_t *m = (amqp_channel_close_t *) reply.reply.decoded;
-                        fprintf(stderr, "%s: server channel error %uh, message: %.*s\n",
-                                show_tip.c_str(),
-                                m->reply_code,
-                                (int) m->reply_text.len, (char *) m->reply_text.bytes);
-                        break;
-                    }
-                default:
-                    fprintf(stderr, "%s: unknown server error, method id 0x%08X\n", show_tip.c_str(), reply.reply.id);
-                    break;
-            }
-            break;          
-    }
-    ABORT(show_tip);
-}
-
