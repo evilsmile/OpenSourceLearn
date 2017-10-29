@@ -1,5 +1,7 @@
 #include "thread.h"
 
+#define USE_LOCK 
+
 Thread::Thread(const std::string& name)
     : _name(name)
 {
@@ -50,22 +52,31 @@ bool Thread::add_request(const std::string& raw_req)
 {
     data_ptr_t data_ptr(new std::string(raw_req));
 
+#ifdef USE_LOCK
     pthread_mutex_lock(&_mutex);
+#endif
 
     _requests.push(data_ptr);
 
+#ifdef USE_LOCK
     pthread_mutex_unlock(&_mutex);
+#endif
 
     return true;
 }
 
 data_ptr_t Thread::get_request()
 {
+#ifdef USE_LOCK
     pthread_mutex_lock(&_mutex);
+#endif
 
-    data_ptr_t data_ptr(_requests.back());
+    data_ptr_t data_ptr(_requests.front());
+    _requests.pop();
 
+#ifdef USE_LOCK
     pthread_mutex_unlock(&_mutex);
+#endif
 
     return data_ptr;
 }
