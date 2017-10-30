@@ -2,19 +2,26 @@
 
 Role RabbitMQThreadBase::_role = CONSUMER;
 
+RabbitMQThreadBase::RabbitMQThreadBase()
+    : _inited(false)
+{
+}
+
 RabbitMQThreadBase::RabbitMQThreadBase(const std::string& username, 
                  const std::string& password, 
                  const std::string& hostip, 
                  int port,
                  int channel_id
-                 )
+                 ) : _inited(false)
 {
     this->init(username, password, hostip, port, channel_id);
 }
 
 RabbitMQThreadBase::~RabbitMQThreadBase()
 {
-    close();
+    if (_inited) {
+        close();
+    }
 }
 
 bool RabbitMQThreadBase::init(const std::string& username, 
@@ -47,6 +54,8 @@ bool RabbitMQThreadBase::init(const std::string& username,
     amqp_channel_open(_conn, _channel_id);
     check_amqp_reply("amqp open channel failed.");
 
+    _inited = true;
+
     return true;
 }
 
@@ -60,8 +69,6 @@ void RabbitMQThreadBase::set_thread_role(Role role)
 {
     _role = role;
 }
-
-
 
 bool RabbitMQThreadBase::run()
 {

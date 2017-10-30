@@ -15,6 +15,7 @@ class Thread {
         ~Thread();
 
         bool start();
+        void stop();
 
         std::string get_name() const;
 
@@ -28,6 +29,7 @@ class Thread {
         virtual bool handle(data_ptr_t);
 
     private:
+        bool _stop;
         std::string _name;
         pthread_mutex_t _mutex;
         data_cache_t _requests;

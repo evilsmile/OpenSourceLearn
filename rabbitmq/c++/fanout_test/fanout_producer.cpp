@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     st_publish_args_t args;
     args.msg_cnt = send_cnt;
     args.msg = msg;
+    // fanout 模式不需要router
     args.route_key = "";
     args.exchange_name = LOCAL_EXCHANGE;
     rabbitMQThread.set_thread_role(PUBLIHSER);

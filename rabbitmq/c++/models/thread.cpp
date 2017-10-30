@@ -3,7 +3,9 @@
 #define USE_LOCK 
 
 Thread::Thread(const std::string& name)
-    : _name(name)
+    : _stop(false),
+      _name(name)
+
 {
    pthread_mutex_init(&_mutex, NULL);
 }
@@ -22,17 +24,22 @@ bool Thread::start()
     return true;
 }
 
+void Thread::stop()
+{
+    _stop = true;
+}
+
 void* Thread::loop_handle(void *arg)
 {
-    while (true) {
+    Thread *p_thread = (Thread*)arg;
+    if (!p_thread) {
+        std::cerr << "NULL thread arg" << std::endl;
+        return NULL;
+    }
 
-        Thread *p_thread = (Thread*)arg;
-        if (!p_thread) {
-            std::cerr << "NULL thread arg" << std::endl;
-            continue;
-        }
+    while (!p_thread->_stop) {
 
-        while (p_thread->has_request()) {
+        for (int i = 0; i < 10 && p_thread->has_request(); ++i) {
             data_ptr_t req = p_thread->get_request();
             p_thread->handle(req);
         }

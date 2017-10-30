@@ -296,15 +296,21 @@ void RabbitMQ::publish(const std::string& exchange_name,
             next_sec = start_sec + SUMMARY_EVERY_US;
         }
 
-        amqp_basic_publish(_conn,                          /* state */
+        amqp_basic_properties_t props;
+        props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;
+        props.delivery_mode = 2; /* persistent delivery mode */
+        if (amqp_basic_publish(_conn,                          /* state */
                            _channel_id,                    /* channel */
                            amqp_cstring_bytes(exchange_name.c_str()), /* exchange */
                            amqp_cstring_bytes(route_key.c_str()),   /* routekey */
-                           0,                /* mandatory */
+                           1,                /* mandatory */
                            0,                /* immediate */
-                           NULL,             /* properties */
+                           &props,             /* properties */
                            message_bytes     /* body */
-                           );
+                           ) < 0) {
+            std::cerr << "basic publish failed." << std::endl;
+            break;
+        }
         check_amqp_reply("amqp basic publish");
         ++sent;
         ++sent_this_sec;

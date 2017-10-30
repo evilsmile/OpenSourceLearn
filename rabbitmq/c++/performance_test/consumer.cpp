@@ -9,6 +9,7 @@
 
 RabbitMQConsumerThread rabbitMQThread;
 RabbitMQ rabbitMQ;
+WorkThread work_thread("message_handler_thread");
 
 int rate_limit = RATE_LIMIT;
 std::string exchange = EXCHANGE_NAME;
@@ -19,6 +20,7 @@ static void ctrlc_handler(int)
 {
     std::cout << "Rabbitmq Existing!" << std::endl;
     rabbitMQThread.stop();
+    work_thread.stop();
 }
 
 void ctrl_c(void)
@@ -77,9 +79,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    WorkThread work_thread("message_handler_thread");
-    work_thread.start();
-
     std::string user = config_parser.getString("rabbitmq_username", "");
     std::string passwd = config_parser.getString("rabbitmq_password", "");
     std::string host_ip = config_parser.getString("rabbitmq_hostip", "");
@@ -90,8 +89,9 @@ int main(int argc, char *argv[])
     rabbitMQ.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQ.exchange_declare(exchange, EXCHANGE_TYPE, true, false);
     rabbitMQ.queue_declare_and_bind_and_consume(queue, true, false, false, exchange, router);
-    rabbitMQ.close();
 #else
+    work_thread.start();
+
     rabbitMQThread.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQThread.set_ratelimit(rate_limit);
     rabbitMQThread.set_queue_consume(queue, true);

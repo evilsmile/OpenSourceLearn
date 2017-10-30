@@ -17,7 +17,7 @@ enum Role {
 class RabbitMQThreadBase
 {
     public:
-        RabbitMQThreadBase(){}
+        RabbitMQThreadBase();
 
         ~RabbitMQThreadBase();
 
@@ -58,6 +58,7 @@ class RabbitMQThreadBase
     protected:
         std::string _name;
         pthread_t _tid;
+        bool _inited;
 
         amqp_connection_state_t _conn; 
         int _channel_id;
