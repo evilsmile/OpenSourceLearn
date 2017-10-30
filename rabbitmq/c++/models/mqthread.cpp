@@ -192,7 +192,7 @@ void RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bo
                        amqp_empty_bytes,     /* consumer_tag */
                        0,       /* no_local */
                        (_ack_flag? 0 : 1),       /* no_ack */
-                       exclusive?1:0,       /* exclusive */
+                       (exclusive? 1 : 0),       /* exclusive */
                        amqp_empty_table    /* argument */
                        );
     check_amqp_reply("amqp basic consume failed.");

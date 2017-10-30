@@ -106,6 +106,17 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
 
 //////////////////////////////// Publisher ///////////////////////////////
 typedef struct _st_publish_args {
+    _st_publish_args(const std::string& exchange_name,
+                     const std::string& route_key,
+                     const std::string& msg,
+                     int msg_cnt) 
+                  : exchange_name(exchange_name),
+                    route_key(route_key),
+                    msg(msg),
+                    msg_cnt(msg_cnt)
+    {
+    }
+
     std::string exchange_name;
     std::string route_key;
     std::string msg;

@@ -107,11 +107,7 @@ int main(int argc, char *argv[])
 
     int send_cnt = 2000000;
 
-    st_publish_args_t args;
-    args.msg_cnt = send_cnt;
-    args.msg = msg;
-    args.route_key = router;
-    args.exchange_name = exchange;
+    st_publish_args_t args(exchange, router, msg, send_cnt);
 
     rabbitMQThread.set_publish_args(&args);
     rabbitMQThread.run();
