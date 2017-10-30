@@ -1,0 +1,12 @@
+alert_test/alert_consumer
+alert_test/alert_producer
+fanout_test/fanout_consumer
+fanout_test/fanout_producer
+performance_test/4000
+performance_test/consumer
+performance_test/logger
+performance_test/producer
+performance_test/tags
+tags
+tmp.list
+1
