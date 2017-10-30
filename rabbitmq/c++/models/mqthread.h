@@ -62,6 +62,7 @@ class RabbitMQThreadBase
 
         amqp_connection_state_t _conn; 
         int _channel_id;
+        std::string _str_channel_id;
 
         bool _running;
 
@@ -85,6 +86,7 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
         void set_workthread(Thread *ptr_workthread);
         void set_queue_consume(const std::string& queue_name, bool exclusive);
 
+        void cancel_consume(void);
 
         // Adjust params
         void enable_consume_ack();

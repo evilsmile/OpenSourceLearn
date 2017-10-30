@@ -36,6 +36,11 @@ bool RabbitMQThreadBase::init(const std::string& username,
     _channel_id = channel_id;
     _conn = amqp_new_connection();
 
+    char szChannelId[32];
+    memset(szChannelId, 0, sizeof(szChannelId));
+    snprintf(szChannelId, sizeof(szChannelId), "%d", _channel_id);
+    _str_channel_id = szChannelId; 
+
     amqp_socket_t* pSocket = amqp_tcp_socket_new(_conn);
     if (pSocket == NULL) {
         ABORT("amqp create socket failed.");
@@ -189,7 +194,7 @@ void RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bo
     amqp_basic_consume(_conn,        /* connection */
                        _channel_id,  /* channel */
                        amqp_cstring_bytes(queue_name.c_str()),  /* queue */
-                       amqp_empty_bytes,     /* consumer_tag */
+                       amqp_cstring_bytes(_str_channel_id.c_str()),     /* consumer_tag */
                        0,       /* no_local */
                        (_ack_flag? 0 : 1),       /* no_ack */
                        (exclusive? 1 : 0),       /* exclusive */
@@ -251,8 +256,6 @@ void RabbitMQConsumerThread::loop_handler()
             next_sec = start_sec + SUMMARY_EVERY_US;
         }
 
-
-
         amqp_envelope_t envelope;
         memset(&envelope, 0, sizeof(envelope));
 
@@ -288,14 +291,14 @@ void RabbitMQConsumerThread::loop_handler()
         int channelid = envelope.channel;
         int deliverytag = envelope.delivery_tag;
 
-        /*
+#if 0
         std::cout << "Channel: " << channelid << ", "
             << "DeliveryTag: " << deliverytag << ", "
             << "Exchange: " << std::string((char*)envelope.exchange.bytes, envelope.exchange.len) << ", "
             << "RouteKey: " << std::string((char*)envelope.routing_key.bytes, envelope.routing_key.len) << ", "
             << "Data: " << data 
             << std::endl;
-            */
+#endif
 
         if (_ack_flag) {
             amqp_basic_ack(_conn, channelid, deliverytag, 0 /* multiple */);
@@ -305,6 +308,15 @@ void RabbitMQConsumerThread::loop_handler()
         amqp_destroy_envelope(&envelope);
     }
 }
+
+void RabbitMQConsumerThread::cancel_consume(void)
+{
+    // 只有确认模式下才可以取消
+    if (_ack_flag) {
+        amqp_basic_cancel(_conn, _channel_id, amqp_cstring_bytes(_str_channel_id.c_str()));
+    }
+}
+
 
 void RabbitMQConsumerThread::_set_default_param(void)
 {

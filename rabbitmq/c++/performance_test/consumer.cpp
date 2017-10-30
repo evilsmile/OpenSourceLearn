@@ -84,8 +84,8 @@ int main(int argc, char *argv[])
     std::string host_ip = config_parser.getString("rabbitmq_hostip", "");
     int host_port = config_parser.getInt32("rabbitmq_port", -1);
 
-    // create queue if needed
 #if 0
+    // create queue if needed
     rabbitMQ.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQ.exchange_declare(exchange, EXCHANGE_TYPE, true, false);
     rabbitMQ.queue_declare_and_bind_and_consume(queue, true, false, false, exchange, router);
@@ -95,6 +95,7 @@ int main(int argc, char *argv[])
     rabbitMQThread.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQThread.set_ratelimit(rate_limit);
     rabbitMQThread.set_queue_consume(queue, true);
+    rabbitMQThread.enable_consume_ack();
 //    rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
     rabbitMQThread.join();
