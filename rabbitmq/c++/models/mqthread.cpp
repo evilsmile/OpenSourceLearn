@@ -369,13 +369,20 @@ void RabbitMQPublisherThread::loop_handler()
             b_router_key = amqp_cstring_bytes(_p_publish_args->route_key.c_str());
         }
 
+        amqp_basic_properties_t props;
+        if (_msg_persistent) {
+            props._flags = AMQP_BASIC_CONTENT_TYPE_FLAG | AMQP_BASIC_DELIVERY_MODE_FLAG;
+            props.content_type = amqp_cstring_bytes("text/plain");
+            props.delivery_mode = 2; /* persistent delivery mode */
+        }
+
         amqp_basic_publish(_conn,                          /* state */
                            _channel_id,                    /* channel */
                            amqp_cstring_bytes(_p_publish_args->exchange_name.c_str()), /* exchange */
                            b_router_key,   /* routekey */
                            0,                /* mandatory */
                            0,                /* immediate */
-                           NULL,             /* properties */
+                           (_msg_persistent ? &props : NULL),  /* properties */
                            message_bytes     /* body */
                            );
         check_amqp_reply("amqp basic publish");
@@ -393,8 +400,19 @@ void RabbitMQPublisherThread::loop_handler()
     }
 }
 
+void RabbitMQPublisherThread::enable_msg_persistent(void)
+{
+    _msg_persistent = true;
+}
+
+void RabbitMQPublisherThread::disable_msg_persistent(void)
+{
+    _msg_persistent = false;
+}
+
 void RabbitMQPublisherThread::_set_default_param(void)
 {
     RabbitMQThreadBase::_set_default_param();
     _role = PUBLIHSER;
+    _msg_persistent = true;
 }

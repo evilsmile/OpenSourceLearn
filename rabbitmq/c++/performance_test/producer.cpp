@@ -9,15 +9,15 @@
 
 #include "common.h"
 #include "names.h"
-#include "rabbitmq_util.h"
+#include "mqthread.h"
 #include "configparser.h"
 
-RabbitMQ rabbitMQ;
+RabbitMQPublisherThread rabbitMQThread;
 
 static void ctrlc_handler(int)
 {
     std::cout << "Rabbitmq Existing!" << std::endl;
-    rabbitMQ.stop();
+    rabbitMQThread.stop();
 }
 
 void ctrl_c(void)
@@ -100,15 +100,22 @@ int main(int argc, char *argv[])
     std::string host_ip = config_parser.getString("rabbitmq_hostip", "");
     int host_port = config_parser.getInt32("rabbitmq_port", -1);
 
-    rabbitMQ.init(user, passwd, host_ip, host_port, CHANNEL_ID);
+    rabbitMQThread.init(user, passwd, host_ip, host_port, CHANNEL_ID);
 
-    rabbitMQ.set_ratelimit(rate_limit);
+    rabbitMQThread.set_ratelimit(rate_limit);
+    rabbitMQThread.enable_msg_persistent();
 
     int send_cnt = 2000000;
 
-    rabbitMQ.publish(exchange, router, msg, send_cnt);
+    st_publish_args_t args;
+    args.msg_cnt = send_cnt;
+    args.msg = msg;
+    args.route_key = router;
+    args.exchange_name = exchange;
 
-    rabbitMQ.close();
-   
+    rabbitMQThread.set_publish_args(&args);
+    rabbitMQThread.run();
+    rabbitMQThread.join();
+
     return 0;
 }

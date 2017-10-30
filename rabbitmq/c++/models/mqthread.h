@@ -53,7 +53,7 @@ class RabbitMQThreadBase
         virtual void loop_handler() = 0;
         
     protected:
-        void _set_default_param();
+        virtual void _set_default_param();
 
     protected:
         std::string _name;
@@ -95,7 +95,7 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
 
         void set_prefetchcnt(uint32_t prefetch_size);
 
-        void _set_default_param();
+        virtual void _set_default_param();
 
     private:
         Thread *_ptr_worker_thread;
@@ -124,14 +124,18 @@ class RabbitMQPublisherThread : public RabbitMQThreadBase
                 int channel_id
                 );
 
+        void enable_msg_persistent();
+        void disable_msg_persistent();
+
         void set_publish_args(st_publish_args_t* publish_args);
         virtual void loop_handler();
 
     protected:
-        void _set_default_param();
+        virtual void _set_default_param();
 
     private:
         st_publish_args_t* _p_publish_args;
+        bool _msg_persistent;
 
 };
 

@@ -40,7 +40,6 @@ int main(int argc, char *argv[])
     // fanout 模式不需要router
     args.route_key = "";
     args.exchange_name = LOCAL_EXCHANGE;
-    rabbitMQThread.set_thread_role(PUBLIHSER);
     rabbitMQThread.set_publish_args(&args);
     rabbitMQThread.run();
     rabbitMQThread.join();
