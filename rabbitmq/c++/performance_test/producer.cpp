@@ -34,6 +34,8 @@ void usage()
               << "       -q queue" << std::endl
               << "       -e exchange" << std::endl
               << "       -R ratelimit" << std::endl
+              << "       -s msg_size" << std::endl
+              << "       -S send_cnt" << std::endl
               ;
     exit(-1);
 }
@@ -44,11 +46,14 @@ int main(int argc, char *argv[])
     std::string exchange = EXCHANGE_NAME;
     std::string queue = QUEUE_NAME;
     std::string router = ROUTER_NAME;
-    std::string msg = "default messge.";
+    std::string msg;
+    //std::string msg = "default messge.";
     std::string msgfile;
+    int send_cnt = 10000;
+    //int send_cnt = 2000000;
 
     char ch;
-    while ((ch = getopt(argc, argv, "hm:r:q:f:e:R:")) != EOF) {
+    while ((ch = getopt(argc, argv, "hm:r:q:f:e:R:s:S:")) != EOF) {
         switch(ch) {
             case 'h':
                 usage();
@@ -67,6 +72,12 @@ int main(int argc, char *argv[])
                 break;
             case 'e':
                 exchange = optarg; 
+                break;
+            case 's':
+                msg.resize(atoi(optarg), '0');
+                break;
+            case 'S':
+                send_cnt = atoi(optarg);
                 break;
             case 'R':
                 rate_limit = atoi(optarg);
@@ -105,7 +116,6 @@ int main(int argc, char *argv[])
     rabbitMQThread.set_ratelimit(rate_limit);
     rabbitMQThread.enable_msg_persistent();
 
-    int send_cnt = 2000000;
 
     st_publish_args_t args(exchange, router, msg, send_cnt);
 

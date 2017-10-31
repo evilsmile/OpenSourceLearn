@@ -204,6 +204,8 @@ void RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bo
                        );
     check_amqp_reply("amqp basic consume failed.");
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
+
+//    cancel_consume();
 }
 
 void RabbitMQConsumerThread::set_prefetchcnt(uint32_t prefetch_count)
@@ -303,10 +305,7 @@ void RabbitMQConsumerThread::loop_handler()
 
 void RabbitMQConsumerThread::cancel_consume(void)
 {
-    // 只有确认模式下才可以取消
-    if (_ack_flag) {
-        amqp_basic_cancel(_conn, _channel_id, amqp_cstring_bytes(_str_channel_id.c_str()));
-    }
+    amqp_basic_cancel(_conn, _channel_id, amqp_cstring_bytes(_str_channel_id.c_str()));
 }
 
 

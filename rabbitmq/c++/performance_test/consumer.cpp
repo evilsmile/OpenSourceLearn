@@ -88,14 +88,15 @@ int main(int argc, char *argv[])
     // create queue if needed
     rabbitMQ.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQ.exchange_declare(exchange, EXCHANGE_TYPE, true, false);
-    rabbitMQ.queue_declare_and_bind_and_consume(queue, true, false, false, exchange, router);
+    rabbitMQ.queue_declare_and_bind(queue, true, false, false, exchange, router);
 #else
     work_thread.start();
 
     rabbitMQThread.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQThread.set_ratelimit(rate_limit);
-    rabbitMQThread.set_queue_consume(queue, true /* ack */, true /* exclusive */);
-//    rabbitMQThread.set_workthread(&work_thread);
+    //rabbitMQThread.set_queue_consume(queue, true /* ack */, true /* exclusive */);
+    rabbitMQThread.set_queue_consume(queue, false /* ack */, true /* exclusive */);
+    rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
     rabbitMQThread.join();
 #endif

@@ -97,7 +97,7 @@ void RabbitMQ::exchange_declare(const std::string& exchange_name,
     std::cout << "Exchange '" << exchange_name << "' declared." << std::endl;
 }
 
-void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
+void RabbitMQ::queue_declare_and_bind(const std::string& queue_name,
                       bool durable, 
                       bool exclusive, 
                       bool auto_delete,
@@ -130,6 +130,7 @@ void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
                    _prefetch_cnt, /* prefetch_count */
                    0 /* global */);
 
+#if 0
     amqp_basic_consume(_conn,        /* connection */
                        _channel_id,  /* channel */
                        amqp_cstring_bytes(queue_name.c_str()),  /* queue */
@@ -141,6 +142,7 @@ void RabbitMQ::queue_declare_and_bind_and_consume(const std::string& queue_name,
                        );
     check_amqp_reply("amqp basic consume failed.");
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
+#endif
 }
 
 void RabbitMQ::stop()
