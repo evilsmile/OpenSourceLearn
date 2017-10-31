@@ -101,5 +101,6 @@ WorkThread::WorkThread(const std::string& name)
 
 bool WorkThread::handle(data_ptr_t req)
 {
+    std::cout << "data: " << *req << std::endl;
     return true;
 }

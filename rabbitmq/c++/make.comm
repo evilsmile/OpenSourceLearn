@@ -1,5 +1,5 @@
 DEP_LIBS= ../libs/libutil.a  ../libs/libmodels.a ../libs/librabbitmq.a ../libs/libutil.a  
-
+DEP_LIBS_COMMENT= ../libs/libutil.a  ../libs/libmodels.a ../libs/librabbitmq.a 
 CXXFLAGS=-g -Wall -I../util/ -I../include -I../models
 LDFLAGS=${DEP_LIBS} -lrt -lpthread
 #LDFLAGS=-lrabbitmq ${DEP_LIBS}

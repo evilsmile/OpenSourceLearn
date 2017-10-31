@@ -183,8 +183,10 @@ void RabbitMQConsumerThread::set_workthread(Thread *ptr_workthread)
     this->_ptr_worker_thread = ptr_workthread;
 }
 
-void RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bool exclusive)
+void RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bool ack, bool exclusive)
 {
+    _ack_flag = ack;
+
     amqp_basic_qos(_conn, 
                    _channel_id,
                    0, /* prefetch_size */
@@ -202,16 +204,6 @@ void RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bo
                        );
     check_amqp_reply("amqp basic consume failed.");
     std::cout << "Queue '" << queue_name << "' basic_consume." << std::endl;
-}
-
-void RabbitMQConsumerThread::enable_consume_ack()
-{
-    _ack_flag = true;
-}
-
-void RabbitMQConsumerThread::disable_consume_ack()
-{
-    _ack_flag = false;
 }
 
 void RabbitMQConsumerThread::set_prefetchcnt(uint32_t prefetch_count)

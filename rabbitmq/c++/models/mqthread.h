@@ -84,13 +84,9 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
                 );
 
         void set_workthread(Thread *ptr_workthread);
-        void set_queue_consume(const std::string& queue_name, bool exclusive);
+        void set_queue_consume(const std::string& queue_name, bool ack, bool exclusive);
 
         void cancel_consume(void);
-
-        // Adjust params
-        void enable_consume_ack();
-        void disable_consume_ack();
 
     protected:
         virtual void loop_handler();

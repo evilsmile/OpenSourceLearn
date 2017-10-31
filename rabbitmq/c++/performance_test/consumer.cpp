@@ -94,8 +94,7 @@ int main(int argc, char *argv[])
 
     rabbitMQThread.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQThread.set_ratelimit(rate_limit);
-    rabbitMQThread.set_queue_consume(queue, true);
-    rabbitMQThread.enable_consume_ack();
+    rabbitMQThread.set_queue_consume(queue, true /* ack */, true /* exclusive */);
 //    rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
     rabbitMQThread.join();
