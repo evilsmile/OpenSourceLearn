@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
     rabbitMQ.queue_declare_and_bind(INFO_QUEUE_NAME, true, false, false, LOG_EXCHANGE_NAME, "info");
     rabbitMQ.close();
 
-    rabbitMQThread.init(user, passwd, host_ip, host_port, LOG_CHANNEL_ID);
+    rabbitMQThread.init(user, passwd, host_ip, host_port);
     rabbitMQThread.set_ratelimit(rate_limit);
     //rabbitMQThread.set_queue_consume(queue, true /* ack */, true /* exclusive */);
-    rabbitMQThread.set_queue_consume(ERR_QUEUE_NAME, false /* ack */, true /* exclusive */);
-    rabbitMQThread.set_queue_consume(WARN_QUEUE_NAME, false /* ack */, true /* exclusive */);
-    rabbitMQThread.set_queue_consume(INFO_QUEUE_NAME, false /* ack */, true /* exclusive */);
+    rabbitMQThread.set_queue_consume(ERR_QUEUE_NAME, false /* ack */, true /* exclusive */,  LOG_CHANNEL_ID);
+    rabbitMQThread.set_queue_consume(WARN_QUEUE_NAME, false /* ack */, true /* exclusive */, LOG_CHANNEL_ID);
+    rabbitMQThread.set_queue_consume(INFO_QUEUE_NAME, false /* ack */, true /* exclusive */, LOG_CHANNEL_ID);
     rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
     rabbitMQThread.join();

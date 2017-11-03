@@ -36,6 +36,8 @@ void usage()
               << "       -R ratelimit" << std::endl
               << "       -s msg_size" << std::endl
               << "       -S send_cnt" << std::endl
+              << "       -p queue_name to purge" << std::endl
+              << "       -c channel" << std::endl
               ;
     exit(-1);
 }
@@ -51,9 +53,12 @@ int main(int argc, char *argv[])
     std::string msgfile;
     int send_cnt = 10000;
     //int send_cnt = 2000000;
+    int channel_id = CHANNEL_ID;
+
+    std::string queue_to_purge;
 
     char ch;
-    while ((ch = getopt(argc, argv, "hm:r:q:f:e:R:s:S:")) != EOF) {
+    while ((ch = getopt(argc, argv, "hm:r:q:f:e:R:s:S:p:c:")) != EOF) {
         switch(ch) {
             case 'h':
                 usage();
@@ -75,6 +80,12 @@ int main(int argc, char *argv[])
                 break;
             case 's':
                 msg.resize(atoi(optarg), '0');
+                break;
+            case 'p':
+                queue_to_purge = optarg;
+                break;
+            case 'c':
+                channel_id = atoi(optarg);
                 break;
             case 'S':
                 send_cnt = atoi(optarg);
@@ -111,15 +122,22 @@ int main(int argc, char *argv[])
     std::string host_ip = config_parser.getString("rabbitmq_hostip", "");
     int host_port = config_parser.getInt32("rabbitmq_port", -1);
 
-    rabbitMQThread.init(user, passwd, host_ip, host_port, CHANNEL_ID);
+    rabbitMQThread.init(user, passwd, host_ip, host_port);
+
+    if (!queue_to_purge.empty()) {
+        std::cout << "purge queue " << queue_to_purge << std::endl;
+        rabbitMQThread.purge_queue(queue_to_purge, channel_id);
+        sleep(1);
+    }
 
     rabbitMQThread.set_ratelimit(rate_limit);
     rabbitMQThread.enable_msg_persistent();
 
+    st_publish_args_t args(exchange, router, msg, send_cnt, channel_id);
 
-    st_publish_args_t args(exchange, router, msg, send_cnt);
-
-    rabbitMQThread.set_publish_args(&args);
+    if (rabbitMQThread.init_publish_args(&args) == false) {
+        return -2;
+    }
     rabbitMQThread.run();
     rabbitMQThread.join();
 

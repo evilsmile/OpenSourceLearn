@@ -22,7 +22,7 @@ class Thread {
         bool add_request(const std::string& req);
         data_ptr_t get_request();
 
-        bool has_request() const;
+        bool has_request();
 
     protected:
         static void* loop_handle(void *arg);

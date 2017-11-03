@@ -15,6 +15,8 @@ int rate_limit = RATE_LIMIT;
 std::string exchange = EXCHANGE_NAME;
 std::string queue = QUEUE_NAME;
 std::string router = ROUTER_NAME;
+std::string queue2 = QUEUE_NAME2;
+std::string router2 = ROUTER_NAME2;
 
 static void ctrlc_handler(int)
 {
@@ -25,9 +27,7 @@ static void ctrlc_handler(int)
 
 void ctrl_c(void)
 {
-    signal(SIGTERM, ctrlc_handler);    
     signal(SIGINT, ctrlc_handler);    
-    signal(SIGQUIT, ctrlc_handler);    
 }
 
 void usage()
@@ -89,17 +89,37 @@ int main(int argc, char *argv[])
     rabbitMQ.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQ.exchange_declare(exchange, EXCHANGE_TYPE, true, false);
     rabbitMQ.queue_declare_and_bind(queue, true, false, false, exchange, router);
+    rabbitMQ.queue_declare_and_bind(queue2, true, false, false, exchange, router2);
 #else
     work_thread.start();
 
-    rabbitMQThread.init(user, passwd, host_ip, host_port, CHANNEL_ID);
+    rabbitMQThread.init(user, passwd, host_ip, host_port);
     rabbitMQThread.set_ratelimit(rate_limit);
-    //rabbitMQThread.set_queue_consume(queue, true /* ack */, true /* exclusive */);
-    rabbitMQThread.set_queue_consume(queue, false /* ack */, true /* exclusive */);
+
+    rabbitMQThread.set_queue_consume(queue, false /* ack */, true /* exclusive */, CHANNEL_ID);
+    rabbitMQThread.set_queue_consume(queue2, false /* ack */, true /* exclusive */, CHANNEL_ID2);
     rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
+
+    usleep(20);
+    ptr_base_req_t req(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID));
+    rabbitMQThread.add_request(req);
+    usleep(20);
+    req.reset(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID2));
+    rabbitMQThread.add_request(req);
+
+    usleep(2 * 60 * 1000 * 1000);
+    req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID));
+    rabbitMQThread.add_request(req);
+    usleep(20 * 1000 * 1000);
+    req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID2));
+    rabbitMQThread.add_request(req);
+
     rabbitMQThread.join();
-#endif
+
+   // rabbitMQThread.get_one_msg(queue, false /* ack */);
+
+#endif /* declare or run queue */
 
     return 0;
 }

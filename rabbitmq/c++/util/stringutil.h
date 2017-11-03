@@ -4,5 +4,6 @@
 #include <string>
 
 void trim(std::string& str);
+std::string int2str(int i);
 
 #endif
