@@ -138,6 +138,8 @@ int main(int argc, char *argv[])
     if (rabbitMQThread.init_publish_args(&args) == false) {
         return -2;
     }
+
+    std::cout << "start running...." << std::endl;
     rabbitMQThread.run();
     rabbitMQThread.join();
 

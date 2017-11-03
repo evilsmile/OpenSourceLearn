@@ -95,12 +95,13 @@ int main(int argc, char *argv[])
 
     rabbitMQThread.init(user, passwd, host_ip, host_port);
     rabbitMQThread.set_ratelimit(rate_limit);
-
+#if 1
     rabbitMQThread.set_queue_consume(queue, false /* ack */, true /* exclusive */, CHANNEL_ID);
     rabbitMQThread.set_queue_consume(queue2, false /* ack */, true /* exclusive */, CHANNEL_ID2);
     rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
 
+    /*
     usleep(20);
     ptr_base_req_t req(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID));
     rabbitMQThread.add_request(req);
@@ -114,10 +115,13 @@ int main(int argc, char *argv[])
     usleep(20 * 1000 * 1000);
     req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID2));
     rabbitMQThread.add_request(req);
+    */
 
     rabbitMQThread.join();
 
-   // rabbitMQThread.get_one_msg(queue, false /* ack */);
+#else
+    rabbitMQThread.get_one_msg(queue, false /* ack */);
+#endif  /* get or consume mode */
 
 #endif /* declare or run queue */
 

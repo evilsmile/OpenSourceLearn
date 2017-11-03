@@ -91,6 +91,8 @@ class RabbitMQThreadBase
 
         void set_thread_role(Role role);
 
+        int get_msg_count_from_mq(const std::string& queue);
+
         void stop();
 
         void main_loop();

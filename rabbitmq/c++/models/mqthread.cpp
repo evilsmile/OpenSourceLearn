@@ -69,10 +69,28 @@ void RabbitMQThreadBase::set_thread_role(Role role)
 bool RabbitMQThreadBase::purge_queue(const std::string& queue, int channel_id)
 {
     open_channel(channel_id);
+
     amqp_queue_purge(_conn, channel_id, amqp_cstring_bytes(queue.c_str()));
     check_amqp_reply("purge_queue");
 
+    while (get_msg_count_from_mq(queue) > 0) {
+        sleep(1);
+    }
+
+    std::cout << "Queue purged success" << std::endl;
+
     return true;
+}
+
+int RabbitMQThreadBase::get_msg_count_from_mq(const std::string& queue)
+{
+    amqp_queue_declare_ok_t* pResult = amqp_queue_declare(_conn, 1, amqp_cstring_bytes(queue.c_str()), 1, 0, 0, 1,amqp_empty_table);
+    check_amqp_reply("get msg count by queue_declare");
+
+    int msg_cnt = pResult->message_count;
+    std::cout << "msg_cnt: " << msg_cnt << std::endl;
+
+    return msg_cnt;
 }
 
 void RabbitMQThreadBase::add_request(ptr_base_req_t req)
@@ -123,21 +141,24 @@ void RabbitMQThreadBase::main_loop()
     
     int recv = 0;
     int previous_recv = 0;
-    int recv_this_sec = 0;
+    int mq_handled_this_sec = 0;
 
     uint64_t _start_time = now_us();
     uint64_t start_sec = _start_time;
     uint64_t next_sec = start_sec + SUMMARY_EVERY_US;
 
     while (_running) {
+
+        // 先处理外部线程传递的消息
+        ptr_base_req_t req = get_request();
+        if (req) {
+            req_handler(req);
+        }
+
         uint64_t now = now_us();
         // 限流
-        if (recv_this_sec >= _rate_limit) {
-            while (now < next_sec) {
-                // 2ms
-                microsleep(2000);
-                now = now_us();
-            }
+        if (mq_handled_this_sec >= _rate_limit && now < next_sec) {
+            continue;
         }
 
         if (now >= next_sec) {
@@ -148,19 +169,14 @@ void RabbitMQThreadBase::main_loop()
             printf("%d ms: recv %d - %d since last report (%d Hz)\n",
                     (int)(now - start_time)/1000, recv, countOverInterval, (int)intervalRate);
                     */
-            recv_this_sec = 0;
+            mq_handled_this_sec = 0;
             start_sec = now;
             next_sec = start_sec + SUMMARY_EVERY_US;
         }
 
-        ptr_base_req_t req = get_request();
-        if (req) {
-            req_handler(req);
-        }
-
         mq_loop_handler();
 
-        ++recv_this_sec;
+        ++mq_handled_this_sec;
     }
 }
 
@@ -309,14 +325,6 @@ bool RabbitMQConsumerThread::set_queue_consume(const std::string& queue_name, bo
 
     ConsumeInfoItem item(queue_name, ack, exclusive);
     _consume_info_list.insert(std::make_pair(channel_id, item));
-
-    /*
-    static int cnt = 0;
-    if (cnt == 0) {
-        pause_consume(channel_id);
-        cnt++;
-    }
-    */
 
     return true;
 }
@@ -561,7 +569,9 @@ bool RabbitMQPublisherThread::mq_loop_handler()
         printf("PRODUCER - Message count: %d\n", _sent);
         printf("Total time, milliseconds: %lu\n", total_delta/1000);
         printf("Overall messages-per-second: %g\n", (_sent/(total_delta / 1000000.0)));
-        exit(0);
+
+        // stop running
+        _running = false;
     }
 
     return true;
