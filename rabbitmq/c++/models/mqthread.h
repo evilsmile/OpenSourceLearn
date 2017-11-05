@@ -20,7 +20,6 @@ enum MQ_CMD {
     MQ_CMD_RESUME_CONSUMER = 1,
 };
 
-
 struct BaseReq {
     BaseReq(MQ_CMD cmd) 
         : cmd(cmd)
@@ -73,6 +72,10 @@ class RabbitMQThreadBase
                 int port
                 );
 
+        virtual bool reconnect();
+
+        bool connect();
+
         bool purge_queue(const std::string& queue, int channel_id);
 
         bool run();
@@ -80,12 +83,10 @@ class RabbitMQThreadBase
 
         static void* thread_start(void *arg);
 
-        virtual void close_all();
+        virtual void close();
 
         bool open_channel(int);
         bool close_channel(int);
-
-        void check_amqp_reply(const std::string& show_tip);
 
         void set_ratelimit(int rate_limit);
 
@@ -105,9 +106,14 @@ class RabbitMQThreadBase
         
     protected:
         virtual void _set_default_param();
+        void _check_amqp_reply(const std::string& show_tip);
 
     protected:
         ptr_requests_t _requests;
+        std::string _username;
+        std::string _password;
+        std::string _hostip;
+        int _port;
 
         std::set<int> _channel_ids;
         std::string _name;
@@ -158,6 +164,8 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
 
         virtual void req_handler(ptr_base_req_t);
 
+        virtual bool reconnect();
+
         bool cancel_consume(int);
 
         void recover_consume(int, bool requeue);
@@ -166,6 +174,9 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
         bool nack_msg(int, uint64_t delivery_tag, bool multiple, bool requeue);
 
         std::string get_one_msg(const std::string& queue_name, bool ack);
+
+    private:
+        bool _set_queue_consume(const std::string& queue_name, bool ack, bool exclusive, int channel_id);
 
     protected:
         virtual bool mq_loop_handler();

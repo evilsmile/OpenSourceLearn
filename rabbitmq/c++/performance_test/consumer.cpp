@@ -101,7 +101,6 @@ int main(int argc, char *argv[])
     rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
 
-    /*
     usleep(20);
     ptr_base_req_t req(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID));
     rabbitMQThread.add_request(req);
@@ -109,13 +108,12 @@ int main(int argc, char *argv[])
     req.reset(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID2));
     rabbitMQThread.add_request(req);
 
-    usleep(2 * 60 * 1000 * 1000);
+    usleep(20 * 1000 * 1000);
     req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID));
     rabbitMQThread.add_request(req);
     usleep(20 * 1000 * 1000);
     req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID2));
     rabbitMQThread.add_request(req);
-    */
 
     rabbitMQThread.join();
 
