@@ -9,7 +9,19 @@
 
 RabbitMQConsumerThread rabbitMQThread;
 RabbitMQ rabbitMQ;
-WorkThread work_thread("message_handler_thread");
+
+class ConsumerWorkThread : public Thread {
+    public:
+        ConsumerWorkThread(const std::string& name) : Thread(name) {}
+
+        virtual bool handle(data_ptr_t) { 
+            return true;
+        }
+
+    private:
+};
+
+ConsumerWorkThread work_thread("message_handler_thread");
 
 int rate_limit = RATE_LIMIT;
 std::string exchange = EXCHANGE_NAME;
@@ -84,44 +96,61 @@ int main(int argc, char *argv[])
     std::string host_ip = config_parser.getString("rabbitmq_hostip", "");
     int host_port = config_parser.getInt32("rabbitmq_port", -1);
 
-#if 0
+//#define CREATE_QUEUE
+#ifdef CREATE_QUEUE
     // create queue if needed
     rabbitMQ.init(user, passwd, host_ip, host_port, CHANNEL_ID);
     rabbitMQ.exchange_declare(exchange, EXCHANGE_TYPE, true, false);
-    rabbitMQ.queue_declare_and_bind(queue, true, false, false, exchange, router);
+    rabbitMQ.queue_declare_and_bind(queue, true /* durable */, false /* exclusive */, false /* auto_delete */, exchange, router);
     rabbitMQ.queue_declare_and_bind(queue2, true, false, false, exchange, router2);
+    sleep(8);
+
 #else
     work_thread.start();
 
     rabbitMQThread.init(user, passwd, host_ip, host_port);
     rabbitMQThread.set_ratelimit(rate_limit);
-#if 1
-    rabbitMQThread.set_queue_consume(queue, false /* ack */, true /* exclusive */, CHANNEL_ID);
-    rabbitMQThread.set_queue_consume(queue2, false /* ack */, true /* exclusive */, CHANNEL_ID2);
-    rabbitMQThread.set_workthread(&work_thread);
+//#define TEST_GET
+#ifndef TEST_GET
+ //   rabbitMQThread.set_prefetchcnt(10);
+   // rabbitMQThread.set_queue_consume(queue,  true /* ack */, false /* exclusive */, CHANNEL_ID);
+//    rabbitMQThread.set_queue_consume(queue2, true /* ack */, true /* exclusive */, CHANNEL_ID2);
+    rabbitMQThread.set_queue_consume(queue, true /* ack */, false /* exclusive */, CHANNEL_ID);
+    //rabbitMQThread.set_queue_consume(queue2, false /* ack */, true /* exclusive */, CHANNEL_ID2);
+//    rabbitMQThread.set_workthread(&work_thread);
     rabbitMQThread.run();
 
-    usleep(20);
-    ptr_base_req_t req(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID));
-    rabbitMQThread.add_request(req);
-    usleep(20);
-    req.reset(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID2));
-    rabbitMQThread.add_request(req);
+//#define TEST_PAUSE
+#ifdef TEST_PAUSE
+    for (int i = 0; i < 3; ++i) {
+        usleep(20);
+        ptr_base_req_t req(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID));
+        rabbitMQThread.add_request(req);
+        usleep(2 * 1000 * 1000);
 
-    usleep(20 * 1000 * 1000);
-    req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID));
-    rabbitMQThread.add_request(req);
+        /*
+           req.reset(new PauseconsumerReq(MQ_CMD_PAUSE_CONSUMER, CHANNEL_ID2));
+           rabbitMQThread.add_request(req);
+           usleep(100 * 1000);
+           */
+
+        req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID));
+//        rabbitMQThread.add_request(req);
+    }
+    /*
     usleep(20 * 1000 * 1000);
     req.reset(new ResumeconsumerReq(MQ_CMD_RESUME_CONSUMER, CHANNEL_ID2));
     rabbitMQThread.add_request(req);
+    */
+#endif /* TEST_PAUSE */
 
     rabbitMQThread.join();
 
 #else
     rabbitMQThread.get_one_msg(queue, false /* ack */);
-#endif  /* get or consume mode */
+#endif  /* TEST_GET */
 
-#endif /* declare or run queue */
+#endif /* CREATE_QUEUE */
 
     return 0;
 }

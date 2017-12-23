@@ -31,7 +31,15 @@ class RabbitMQ
                 bool durable, 
                 bool auto_delete);
 
-        void queue_declare_and_bind(const std::string& queue_name,
+        void exchange_bind(const std::string& source,
+                const std::string& dest,
+                const std::string& bind_key);
+
+        void exchange_unbind(const std::string& source,
+                const std::string& dest,
+                const std::string& bind_key);
+
+         void queue_declare_and_bind(const std::string& queue_name,
                 bool durable, 
                 bool exclusive, 
                 bool auto_delete,

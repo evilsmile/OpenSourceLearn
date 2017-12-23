@@ -97,6 +97,34 @@ void RabbitMQ::exchange_declare(const std::string& exchange_name,
     std::cout << "Exchange '" << exchange_name << "' declared." << std::endl;
 }
 
+void RabbitMQ::exchange_bind(const std::string& source,
+                const std::string& dest,
+                const std::string& bind_key)
+{
+    amqp_exchange_bind(_conn, /* state */
+                          _channel_id,    /* channel */
+                          amqp_cstring_bytes(dest.c_str()),  /* dest exchange */
+                          amqp_cstring_bytes(source.c_str()),  /* source exchange */
+                          amqp_cstring_bytes(bind_key.c_str()), /* binding key */
+                          amqp_empty_table);
+    check_amqp_reply("amqp exchange bind failed.");
+    std::cout << "Exchange '" << source << "'=>'" << dest << "' binded." << std::endl;
+}
+
+void RabbitMQ::exchange_unbind(const std::string& source,
+                const std::string& dest,
+                const std::string& bind_key)
+{
+    amqp_exchange_unbind(_conn, /* state */
+                          _channel_id,    /* channel */
+                          amqp_cstring_bytes(dest.c_str()),  /* dest exchange */
+                          amqp_cstring_bytes(source.c_str()),  /* source exchange */
+                          amqp_cstring_bytes(bind_key.c_str()), /* binding key */
+                          amqp_empty_table);
+    check_amqp_reply("amqp exchange unbind failed.");
+    std::cout << "Exchange '" << source << "'=>'" << dest << "' unbinded." << std::endl;
+}
+
 void RabbitMQ::queue_declare_and_bind(const std::string& queue_name,
                       bool durable, 
                       bool exclusive, 

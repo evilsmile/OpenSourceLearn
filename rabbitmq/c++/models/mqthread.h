@@ -135,13 +135,20 @@ class RabbitMQThreadBase
 // 在暂停和恢复的时候需要
 struct ConsumeInfoItem {
     ConsumeInfoItem(std::string queue_name, bool ack, bool exclusive)
-          : queue_name(queue_name), ack(ack), exclusive(exclusive)
+          : queue_name(queue_name),
+            ack(ack),
+            exclusive(exclusive),
+            cur_delivery_tag(0),
+            cur_msgcnt_after_fetched(0)
     {
     }
 
     std::string queue_name;
     bool ack;
     bool exclusive;
+
+    int cur_delivery_tag;
+    unsigned int cur_msgcnt_after_fetched;
 };
 
 typedef std::map<int, ConsumeInfoItem> consume_info_list_t;
@@ -170,10 +177,15 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
 
         void recover_consume(int, bool requeue);
 
+        bool active_channel(int);
+        bool inactive_channel(int);
+
         bool reject_msg(int, uint64_t delivery_tag, bool requeue);
         bool nack_msg(int, uint64_t delivery_tag, bool multiple, bool requeue);
 
         std::string get_one_msg(const std::string& queue_name, bool ack);
+
+        void set_prefetchcnt(uint32_t prefetch_size);
 
     private:
         bool _set_queue_consume(const std::string& queue_name, bool ack, bool exclusive, int channel_id);
@@ -181,9 +193,9 @@ class RabbitMQConsumerThread : public RabbitMQThreadBase
     protected:
         virtual bool mq_loop_handler();
 
-        void set_prefetchcnt(uint32_t prefetch_size);
-
         virtual void _set_default_param();
+
+        bool _active_or_inactive_channel(int, bool);
 
     private:
         Thread *_ptr_worker_thread;
@@ -215,6 +227,12 @@ typedef struct _st_publish_args {
 } st_publish_args_t;
 
 
+enum PUBLISH_CONFIRM_MODE {
+    CMODE_DISABLED = 0,
+    CMODE_TX = 1,
+    CMODE_CONFIRM = 2
+};
+
 class RabbitMQPublisherThread : public RabbitMQThreadBase
 {
     public:
@@ -228,6 +246,8 @@ class RabbitMQPublisherThread : public RabbitMQThreadBase
         void enable_msg_persistent();
         void disable_msg_persistent();
 
+        bool set_confirm_mode(PUBLISH_CONFIRM_MODE mode);
+
         bool init_publish_args(st_publish_args_t* publish_args);
         virtual bool mq_loop_handler();
 
@@ -238,6 +258,7 @@ class RabbitMQPublisherThread : public RabbitMQThreadBase
         st_publish_args_t* _p_publish_args;
         amqp_bytes_t _msg_bytes;
         int _sent;
+        PUBLISH_CONFIRM_MODE _publish_confirm_mode;
 
         bool _msg_persistent;
 

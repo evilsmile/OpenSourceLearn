@@ -5,7 +5,7 @@ Role RabbitMQThreadBase::_role = CONSUMER;
 
 static const int DEFAULT_HEARTBEAT_TIMEOUT = 0;
 
-#if 1
+#if 0
 static const int DEFAULT_FRAME_MAX = 131072;
 #else
 static const int DEFAULT_FRAME_MAX = 4096;
@@ -164,8 +164,6 @@ void RabbitMQThreadBase::main_loop()
 {
     std::cout << "rate limit: " << _rate_limit << std::endl;
 
-    int recv = 0;
-    int previous_recv = 0;
     int mq_handled_this_sec = 0;
 
     _start_time = now_us();
@@ -187,13 +185,6 @@ void RabbitMQThreadBase::main_loop()
         }
 
         if (now >= next_sec) {
-            /*
-               int countOverInterval = recv - previous_recv;
-               previous_recv = recv;
-               double intervalRate = countOverInterval / ((now - start_sec) / 1000000.0);
-               printf("%d ms: recv %d - %d since last report (%d Hz)\n",
-               (int)(now - start_time)/1000, recv, countOverInterval, (int)intervalRate);
-               */
             mq_handled_this_sec = 0;
             start_sec = now;
             next_sec = start_sec + SUMMARY_EVERY_US;
@@ -369,7 +360,9 @@ bool RabbitMQConsumerThread::_set_queue_consume(const std::string& queue_name, b
     return true;
 }
 
-//#define CLOSE_CHANNEL_WHEN_PAUSE
+#define CLOSE_CHANNEL_WHEN_PAUSE
+
+#define PAUSE_BY_CHANNEL_FLOW
 bool RabbitMQConsumerThread::pause_consume(ptr_base_req_t req)
 {
     PauseconsumerReq* pauseReq = dynamic_cast<PauseconsumerReq*>(req.get());
@@ -382,6 +375,12 @@ bool RabbitMQConsumerThread::pause_consume(ptr_base_req_t req)
 
     std::cout << "cancel consumer of channel [" << channel_id << "]\n";
 
+#ifdef PAUSE_BY_CHANNEL_FLOW
+    if (inactive_channel(channel_id)) {
+        return false;
+    }
+
+#else
     if (cancel_consume(channel_id) == false) {
         return false;
     }
@@ -391,7 +390,9 @@ bool RabbitMQConsumerThread::pause_consume(ptr_base_req_t req)
     if (close_channel(channel_id) == false) {
         return false;
     }
-#endif
+#endif  /* CLOSE_CHANNEL_WHEN_PAUSE */
+
+#endif /* PAUSE_BY_CHANNEL_FLOW */
 
     return true;
 }
@@ -414,9 +415,17 @@ bool RabbitMQConsumerThread::resume_consume(ptr_base_req_t req)
         return false;
     }
 
-    const ConsumeInfoItem& item = itemIter->second;
+
+#ifdef PAUSE_BY_CHANNEL_FLOW
+    if (active_channel(channel_id)) {
+        return false;
+    }
+
+#else
 
 #ifdef CLOSE_CHANNEL_WHEN_PAUSE
+    const ConsumeInfoItem& item = itemIter->second;
+
     if (set_queue_consume(item.queue_name, 
                 item.ack,
                 item.exclusive,
@@ -430,7 +439,9 @@ bool RabbitMQConsumerThread::resume_consume(ptr_base_req_t req)
                 channel_id) == false) {
         return false;
     }
-#endif
+#endif  /* CLOSE_CHANNEL_WHEN_PAUSE */
+
+#endif  /* PAUSE_BY_CHANNEL_FLOW */
 
     return true;
 }
@@ -462,7 +473,7 @@ bool RabbitMQConsumerThread::mq_loop_handler()
 
     struct timeval tv;
     tv.tv_sec = 0;
-    tv.tv_usec = 20 * 1000; // 20s
+    tv.tv_usec = 20 * 1000; // 20ms
     amqp_consume_message(_conn, &envelope, &tv, 0);
     _check_amqp_reply("amqp consume msg failed.");
 
@@ -473,16 +484,31 @@ bool RabbitMQConsumerThread::mq_loop_handler()
     }
 
     int channel_id = envelope.channel;
-    int deliverytag = envelope.delivery_tag;
+    int delivery_tag = envelope.delivery_tag;
+    int redelivered = envelope.redelivered;
     //     std::string exchange((char*)envelope.exchange.bytes, envelope.exchange.len);
     //     std::string router((char*)envelope.routing_key.bytes, envelope.routing_key.len);
 
-    std::cout << "channelid: " << channel_id << ", deliverytag: " << deliverytag << std::endl;
+//    std::cout << "channelid: " << channel_id << ", delivery_tag: " << delivery_tag << " redelivered:" << redelivered << std::endl;
 
     consume_info_list_t::iterator itemIter = _consume_info_list.find(channel_id);
-    // 无记录当作要确认
-    if (itemIter == _consume_info_list.end() || itemIter->second.ack) {
-        amqp_basic_ack(_conn, channel_id, deliverytag, 0 /* multiple */);
+
+    if (itemIter != _consume_info_list.end() && itemIter->second.ack) {
+
+        ConsumeInfoItem& consume_info_item = itemIter->second;
+    
+        consume_info_item.cur_msgcnt_after_fetched++;
+        consume_info_item.cur_delivery_tag = delivery_tag;
+
+        if (consume_info_item.cur_msgcnt_after_fetched >= _prefetch_cnt) {
+            //nack_msg(channel_id, consume_info_item.cur_delivery_tag, true /* multiple */, true /*requeue */);
+            amqp_basic_ack(_conn, channel_id, consume_info_item.cur_delivery_tag, 0 /* multiple */);
+            _check_amqp_reply("amqp basic ack failed.");
+            consume_info_item.cur_msgcnt_after_fetched = 0;
+            consume_info_item.cur_delivery_tag = 0;
+        } 
+    } else {
+//        std::cout << "not found in consume_info cache of channel: " << channel_id << std::endl;
     }
 
     amqp_destroy_envelope(&envelope);
@@ -515,6 +541,24 @@ bool RabbitMQConsumerThread::reconnect()
     return true;
 }
 
+bool RabbitMQConsumerThread::inactive_channel(int channel_id)
+{
+    return _active_or_inactive_channel(channel_id, false); 
+}
+
+bool RabbitMQConsumerThread::active_channel(int channel_id)
+{
+    return _active_or_inactive_channel(channel_id, true); 
+}
+
+bool RabbitMQConsumerThread::_active_or_inactive_channel(int channel_id, bool active_flag)
+{
+    amqp_channel_flow(_conn, channel_id, true);
+//    std::cout << "reply status: " << reply->active << std::endl;
+
+    return true;
+}
+
 bool RabbitMQConsumerThread::cancel_consume(int channel_id)
 {
     amqp_basic_cancel(_conn, channel_id, amqp_cstring_bytes(int2str(channel_id).c_str()));
@@ -537,6 +581,7 @@ bool RabbitMQConsumerThread::reject_msg(int channel_id, uint64_t delivery_tag, b
 
 bool RabbitMQConsumerThread::nack_msg(int channel_id, uint64_t delivery_tag, bool multiple, bool requeue)
 {
+    std::cout << "basic.nack delivery_tag: " << delivery_tag << std::endl;
     amqp_basic_nack(_conn, channel_id, delivery_tag, multiple?1:0, requeue?1:0);
 
     return true;
@@ -613,6 +658,10 @@ bool RabbitMQPublisherThread::mq_loop_handler()
             props.delivery_mode = 2; /* persistent delivery mode */
         }
 
+        if (_publish_confirm_mode == CMODE_TX) {
+            amqp_tx_select(_conn, _p_publish_args->channel_id);
+        } 
+
         amqp_basic_publish(_conn,                          /* state */
                 _p_publish_args->channel_id,                    /* channel */
                 amqp_cstring_bytes(_p_publish_args->exchange_name.c_str()), /* exchange */
@@ -623,6 +672,10 @@ bool RabbitMQPublisherThread::mq_loop_handler()
                 _msg_bytes     /* body */
                 );
         _check_amqp_reply("amqp basic publish");
+
+        if (_publish_confirm_mode == CMODE_TX) {
+            amqp_tx_commit(_conn, _p_publish_args->channel_id);
+        } 
 
     }  else {
         uint64_t stop_time = now_us();
@@ -649,10 +702,33 @@ void RabbitMQPublisherThread::disable_msg_persistent(void)
     _msg_persistent = false;
 }
 
+bool RabbitMQPublisherThread::set_confirm_mode(PUBLISH_CONFIRM_MODE mode)
+{
+    if ((mode == CMODE_CONFIRM &&_publish_confirm_mode == CMODE_TX)
+            || (mode == CMODE_TX &&_publish_confirm_mode == CMODE_CONFIRM)) {
+        std::cerr << "already in "
+                  << (_publish_confirm_mode==CMODE_CONFIRM?"confirm":"transaction")
+                  << " mode. can't switch to "
+                  << (mode==CMODE_CONFIRM?"confirm":"transaction")
+                  << " mode\n";
+        return false;
+    }
+
+    _publish_confirm_mode = mode;
+
+    if (_publish_confirm_mode == CMODE_CONFIRM) {
+        std::cout << "init confirm mode\n";
+        amqp_confirm_select(_conn, _p_publish_args->channel_id);
+    }
+
+    return true;
+}
+
 void RabbitMQPublisherThread::_set_default_param(void)
 {
     RabbitMQThreadBase::_set_default_param();
     _role = PUBLIHSER;
     _msg_persistent = true;
     _sent = 0;
+    _publish_confirm_mode = CMODE_DISABLED;
 }

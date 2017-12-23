@@ -139,9 +139,15 @@ int main(int argc, char *argv[])
         return -2;
     }
 
+    if (rabbitMQThread.set_confirm_mode(CMODE_CONFIRM) == false) {
+        return -3;
+    }
+
     std::cout << "start running...." << std::endl;
     rabbitMQThread.run();
     rabbitMQThread.join();
+
+//    sleep(10);
 
     return 0;
 }
