@@ -9,6 +9,8 @@ printfibo(N) ->
     Res = fib:fibo(N),
     io:fwrite("~w ~w~n", [N, Res]).
 
+%% -spec fibo(N::float()) -> N when is_subtype(N, float()).
+-spec fibo(N::integer()) -> integer().
 fibo(0) -> 0;
 fibo(1) -> 1;
 fibo(N) when N > 0 -> fibo(N-1) + fibo(N-2) .

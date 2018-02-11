@@ -1,0 +1,25 @@
+-file("macro_test.erl", 1).
+
+-module(macro_test).
+
+-export([dump/1,go/1,show/2,len/1,say/0]).
+
+say() ->
+    io:format("Zen").
+
+len(List) when is_list(List) ->
+    io:format("~p=~p ~n", ["length ( List )",length(List)]).
+
+dump(X) ->
+    X * 2.
+
+go(X) ->
+    dump(X).
+
+show(X, Y) when X =:= Y ->
+    io:format("The are equal. ~n");
+show(_X, _Y) ->
+    io:format("HAHA").
+
+
+

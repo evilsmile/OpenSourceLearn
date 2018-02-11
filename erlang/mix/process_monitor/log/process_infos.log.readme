@@ -1,0 +1,30 @@
+=>[{registered_name,init},               %% 进程注册的名称
+   {current_function,{init,loop,1}},     %% 当前进程调用的方法, {Module, Function, Args}
+   {initial_call,{otp_ring0,start,2}},   %% 进程spawned时初始化调用的 {Module, Function, Args}
+   {status,waiting},                     %% 进程状态，有(exiting, 
+                                                         garbage_collecting,
+                                                         wating(for a message),
+                                                         running, 
+                                                         runnable(ready to run, but another process is running)
+                                                         suspended
+   {message_queue_len,0},
+   {messages,[]},                        %% 堆积消息列表 
+   {links,[<0.32.0>,<0.33.0>,<0.6.0>]},  %% 关联进程列表
+   {dictionary,[]},                      %% 当前进程的进程字典数据，调试过程中我们可以为进程添加一些特殊标记来识别进程
+   {trap_exit,true},                     %% 是否为系统进程
+   {error_handler,error_handler},
+   {priority,normal},                    %% 进程优先级
+   {group_leader,<0.0.0>},
+   {total_heap_size,752},                 %% 进程所有的堆大小(word)
+   {heap_size,376},                       %% 
+   {stack_size,2},                        %% 进程栈大小(word)
+   {reductions,1135},                     %% 进程负载的粗略评估指标, Erlang虚拟机用来调度进程的一个依据
+   {garbage_collection,
+       [{max_heap_size,#{error_logger => true,kill => true,size => 0}},
+        {min_bin_vheap_size,46422},
+        {min_heap_size,233},
+        {fullsweep_after,65535},
+        {minor_gcs,1}]},
+   {suspending,[]}] 
+
+

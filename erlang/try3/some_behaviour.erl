@@ -1,0 +1,4 @@
+-module(some_behaviour).
+-behaviour(my_behaviour).
+-callback init( number() ) -> number().
+-callback handle( Event::atom(), ARG::number() ) -> number().
