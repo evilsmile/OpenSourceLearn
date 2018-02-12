@@ -4,8 +4,8 @@
 
 -record(info, {name, age}).
 
-test(#info{name = Name}) ->
-    Name.
+test(#info{name = Name} = I) ->
+    io:format("Module:[~p] Info:[~p] Name;[~p] ~n", [?MODULE, I, Name]).
 
 test() ->
     Info = #info{ name = <<"YY">>, age = 18},
