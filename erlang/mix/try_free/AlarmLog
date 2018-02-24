@@ -1,0 +1,3 @@
+1519,96494,877708,raise_alarm,10,cabinet_open
+1519,96552,103444,clear_alarm,10,cabinet_open
+1519,96580,437426,event,56,link_up
