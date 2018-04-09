@@ -10,7 +10,7 @@ def test():
     print "labelMat:",labelMat
     weights = logicReg.gradAscent(dataMat, labelMat)
     #weights = logicReg.stocGradAscent0(dataMat, labelMat)
-    weights = logicReg.stocGradAscent2(dataMat, labelMat)
+    weights = logicReg.stocGradAscent1(dataMat, labelMat)
     print "weights:",weights
 
 if __name__ == '__main__':
