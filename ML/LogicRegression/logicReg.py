@@ -70,7 +70,7 @@ def stocGradAscent0(dataMatrix, classLabels):
         weights = weights + alpha * error * dataMatrix[i]
     return weights
 
-def stocGradAscent1(dataMatrix, classLabels, numIter=150):
+def stocGradAscent1(dataMatrix, classLabels, numIter=500):
     m,n = shape(dataMatrix)
     weights = ones(n)
     for j in range(numIter):
@@ -83,3 +83,11 @@ def stocGradAscent1(dataMatrix, classLabels, numIter=150):
             weights = weights + alpha * error * dataMatrix[randIndex]
             del(dataIndex[randIndex])
     return weights
+
+def classifyVector(inX, weights):
+    prob = sigmoid(sum(inX*weights))
+    if prob > 0.5:
+        return 1.0
+    else:
+        return 0.0
+
