@@ -38,6 +38,7 @@ def gradAscent(dataMatIn, classLabels):
 
 def plotBestFit(wei):
     import matplotlib.pyplot as plt
+    # 不需要getA()
     weights = wei #.getA()
     dataMat, labelMat = loadDataSet()
     dataArr = array(dataMat)
