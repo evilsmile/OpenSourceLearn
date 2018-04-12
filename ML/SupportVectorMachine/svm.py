@@ -38,9 +38,11 @@ def plotBestFit(wei, fileName):
     xcord2 = []; ycord2 = []
     for i in range(n):
         if int(labelMat[i]) == 1:
-            xcord1.append(dataArr[i, 1]); ycord1.append(dataArr[i,2])
+            xcord1.append(dataArr[i, 1]); 
+            ycord1.append(dataArr[i, 2])
         else:
-            xcord2.append(dataArr[i, 1]); ycord2.append(dataArr[i,2])
+            xcord2.append(dataArr[i, 1]); 
+            ycord2.append(dataArr[i,2])
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.scatter(xcord1, ycord1, s=30, c='red', marker='s')
@@ -92,12 +94,12 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
                        L = max(0, alphas[j] + alphas[i] - C)
                        H = min(C, alphas[j] + alphas[i])
                    if L == H:
-                        print "L == H";
+                        print("L == H")
                         continue
                     # Eta is the optimal amount to change alpha[j]
                    eta = 2.0 * dataMatrix[i,:] * dataMatrix[j, :].T - dataMatrix[i, :] * dataMatrix[i, :].T - dataMatrix[j, :] * dataMatrix[j, :].T
                    if eta >= 0:
-                       print "eta >= 0"
+                       print("eta >= 0")
                        continue
                    alphas[j] -= labelMat[j] * (Ei - Ej)/eta
                    # Update i by same amount as j in opposite direction
@@ -105,7 +107,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
 
                    # if alphas[j] has changed by a small amount
                    if (abs(alphas[j] - alphaJold) < 0.00001):
-                       print "j not moving enough"
+                       print("j not moving enough")
                        continue
                    # alpha[i] is changed by the same amount as alpha[j] in the opossite direction
                    alphas[i] += labelMat[j] * labelMat[i] * (alphaJold - alphas[j])
@@ -124,7 +126,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
                        b = (b1+b2)/2.0
                     # finish the optimization, successfully changed a pair of alphas, increment alphaPairsChanged
                    alphaParisChanged += 1
-                   print "iter: %d i:%d, pairs changed %d" % (iter, i, alphaParisChanged)
+                   print("iter: %d i:%d, pairs changed %d" % (iter, i, alphaParisChanged))
             # if no vectors were optimized, increment the iteration count
             # if any alphas have been updated, set iter to 0 and continue
             if (alphaParisChanged == 0):
@@ -132,5 +134,5 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
             # nothing changed
             else:
                    iter = 0
-            print "iteration number: %d" % iter
+            print("iteration number: %d" % iter)
         return b, alphas

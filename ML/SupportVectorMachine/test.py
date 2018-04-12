@@ -7,10 +7,11 @@ from numpy import *
 def test():
     dataArr, labelArr = svm.loadDataSet('testSet.txt')
     b, alphas = svm.smoSimple(dataArr, labelArr, 0.6, 0.001, 40)
-    print "dataArr:",dataArr
-    print "labelArr:",labelArr
-    print alphas
-    print b
+    svm.plotBestFit(alphas, 'testSet.txt')
+    #print("dataArr:",dataArr)
+    #print("labelArr:",labelArr)
+    #print(alphas)
+    #print(b)
 
 if __name__ == '__main__':
     test()
