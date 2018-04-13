@@ -281,6 +281,11 @@ def kernelTrans(X, A, kTup):
     if kTup[0] == 'lin':
         K = X * A.T
     # radial bias function, evaluate Gaussian function
+    # k(x,y) = exp(-pow(||x-y||,2) / 2*pow(u,2))        // u is a user-defined parameter that determine the "reach"
+    #                                                   // or how quickly this falls to 0
+    #                                                   // this Gaussian versio maps the data from its feature space 
+    #                                                   // to a higher feature space, inifinite dimensional to be specified
+    # 
     elif kTup[0] == 'rbf':
         for j in range(m):
             deltaRow = X[j,:] - A
@@ -289,3 +294,5 @@ def kernelTrans(X, A, kTup):
     else:
         raise NameError('Houston We have a problem -- That Kernel is not recognized')
     return K
+
+
