@@ -238,6 +238,7 @@ def innerL(i, oS):
     else:
         return 0
 
+# Much faster compared with smoSimple
 def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
     # create OptStruct to hold all data
     oS = OptStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler)
@@ -263,3 +264,13 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
         print("iteration number: %d" % iter)
     # 1 will be returned if any pairs get changed
     return oS.b, oS.alphas
+
+def calcWs(alphas, dataArr, classLabels):
+    X = mat(dataArr)
+    labelMat = mat(classLabels).transpose()
+    m,n = shape(X)
+    w = zeros((n, 1))
+    for i in range(m):
+        w += multiply(alphas[i]*labelMat[i], X[i,:].T)
+    return w
+
