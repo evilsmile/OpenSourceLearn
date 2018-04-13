@@ -27,29 +27,33 @@ def clipAlpha(aj, H, L):
         aj = L
     return aj
 
-def plotBestFit(wei, fileName):
+def plotBestFit(alpha, dataMat, labelMat):
     import matplotlib.pyplot as plt
-    # 不需要getA()
-    weights = wei #.getA()
-    dataMat, labelMat = loadDataSet(fileName)
     dataArr = array(dataMat)
     n = shape(dataArr)[0]
     xcord1 = []; ycord1 = []
     xcord2 = []; ycord2 = []
     for i in range(n):
         if int(labelMat[i]) == 1:
-            xcord1.append(dataArr[i, 1]); 
-            ycord1.append(dataArr[i, 2])
+            xcord1.append(dataArr[i, 0]); 
+            ycord1.append(dataArr[i, 1])
         else:
-            xcord2.append(dataArr[i, 1]); 
-            ycord2.append(dataArr[i,2])
+            xcord2.append(dataArr[i, 0]); 
+            ycord2.append(dataArr[i, 1])
+    xcord3 = []; ycord3 = []
+    for i in range(100):
+        if alpha[i]>0.0:
+            xcord3.append(dataArr[i, 0])
+            ycord3.append(dataArr[i, 1])
+            
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.scatter(xcord1, ycord1, s=30, c='red', marker='s')
     ax.scatter(xcord2, ycord2, s=30, c='green')
-    x = arange(-3.0, 3.0, 0.1)
-    y = (-weights[0] - weights[1]*x)/weights[2]
-    ax.plot(x, y)
+    ax.scatter(xcord3, ycord3, s=60, c='black')
+#    x = arange(-3.0, 3.0, 0.1)
+#    y = (-weights[0] - weights[1]*x)/weights[2]
+#    ax.plot(x, y)
     plt.xlabel('X1'); plt.ylabel('X2');
     plt.show()
 
