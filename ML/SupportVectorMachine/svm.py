@@ -143,7 +143,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
 
 # create a data structure to hold all of the important values.
 class OptStruct:
-    def __init__(self, dataMatIn, classLabels, C, toler):
+    def __init__(self, dataMatIn, classLabels, C, toler, kTup):
         self.X = dataMatIn
         self.labelMat = classLabels
         self.C = C
@@ -153,11 +153,13 @@ class OptStruct:
         self.b = 0
         # error cache
         self.eCache = mat(zeros((self.m, 2)))
+        self.K = mat(zeros((self.m, self.m)))
+        for i in range(self.m):
+            self.K[:,i] = kernelTrans(self.X, self.X[i,:], kTup)
 
 # calculate an E value for a given alpha and return E values
 def calcEk(oS, k):
-    fXk = float(multiply(oS.alphas, oS.labelMat).T* \
-            (oS.X*oS.X[k, :].T)) + oS.b
+    fXk = float(multiply(oS.alphas, oS.labelMat).T* oS.K[:,k] + oS.b)
     Ek = fXk - float(oS.labelMat[k])
     return Ek
 
@@ -208,7 +210,7 @@ def innerL(i, oS):
         if L == H: 
             print("L==H"); 
             return 0
-        eta = 2.0 * oS.X[i,:] * oS.X[j, :].T - oS.X[i, :] * oS.X[i, :].T - oS.X[j, :] * oS.X[j, :].T
+        eta = 2.0 * oS.K[i,j] - oS.K[i,i] - oS.K[j,j]
         if eta >= 0: 
             print("eta>=0");
             return 0
@@ -222,12 +224,10 @@ def innerL(i, oS):
         oS.alphas[i] += oS.labelMat[j] * oS.labelMat[i] * (alphaJold - oS.alphas[j])
         updateEk(oS, i)
         b1 = oS.b - Ei - oS.labelMat[i] * (oS.alphas[i] - alphaIold) * \
-                oS.X[i, :] * oS.X[i, :].T - oS.labelMat[j] * \
-                (oS.alphas[j] - alphaJold) * oS.X[i, :]*oS.X[j,:].T
+                oS.K[i,i] - oS.labelMat[j] *(oS.alphas[j] - alphaJold) * oS.K[i,j]
 
         b2 = oS.b - Ej - oS.labelMat[i] * (oS.alphas[i] - alphaIold) *\
-                oS.X[i,:]*oS.X[j,:].T - oS.labelMat[j] * \
-                (oS.alphas[j] - alphaJold) * oS.X[j,:] * oS.X[j,:].T
+                oS.K[i,j] - oS.labelMat[j] * (oS.alphas[j] - alphaJold) * oS.K[j,j]
         if (0 < oS.alphas[i]) and (oS.C > oS.alphas[i]): 
             oS.b = b1
         elif (0 < oS.alphas[j]) and (oS.C > oS.alphas[j]): 
@@ -241,7 +241,7 @@ def innerL(i, oS):
 # Much faster compared with smoSimple
 def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
     # create OptStruct to hold all data
-    oS = OptStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler)
+    oS = OptStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler, kTup)
     iter = 0
     entireSet = True; alphaParisChanged = 0
     while (iter < maxIter) and ((alphaParisChanged > 0) or (entireSet)):
@@ -274,3 +274,18 @@ def calcWs(alphas, dataArr, classLabels):
         w += multiply(alphas[i]*labelMat[i], X[i,:].T)
     return w
 
+def kernelTrans(X, A, kTup):
+    m, n = shape(X)
+    K = mat(zeros((m, 1)))
+    # linear kernel, dot product
+    if kTup[0] == 'lin':
+        K = X * A.T
+    # radial bias function, evaluate Gaussian function
+    elif kTup[0] == 'rbf':
+        for j in range(m):
+            deltaRow = X[j,:] - A
+            K[j] = deltaRow*deltaRow.T
+        K = exp(K / (-1*kTup[1]**2))
+    else:
+        raise NameError('Houston We have a problem -- That Kernel is not recognized')
+    return K
