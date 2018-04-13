@@ -128,7 +128,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
                        b = b2
                    else:
                        b = (b1+b2)/2.0
-                    # finish the optimization, successfully changed a pair of alphas, increment alphaPairsChanged
+                    # finish the optimization, successfully changed a pair of alphas, increment alphaParisChanged
                    alphaParisChanged += 1
                    print("iter: %d i:%d, pairs changed %d" % (iter, i, alphaParisChanged))
             # if no vectors were optimized, increment the iteration count
@@ -140,3 +140,126 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
                    iter = 0
             print("iteration number: %d" % iter)
         return b, alphas
+
+# create a data structure to hold all of the important values.
+class OptStruct:
+    def __init__(self, dataMatIn, classLabels, C, toler):
+        self.X = dataMatIn
+        self.labelMat = classLabels
+        self.C = C
+        self.tol = toler
+        self.m = shape(dataMatIn)[0]
+        self.alphas = mat(zeros((self.m, 1)))
+        self.b = 0
+        # error cache
+        self.eCache = mat(zeros((self.m, 2)))
+
+# calculate an E value for a given alpha and return E values
+def calcEk(oS, k):
+    fXk = float(multiply(oS.alphas, oS.labelMat).T* \
+            (oS.X*oS.X[k, :].T)) + oS.b
+    Ek = fXk - float(oS.labelMat[k])
+    return Ek
+
+# Inner-loop heuristic
+# select the second alpha, or the inner loop alpha
+# the goal is to choose the second alpha so that we'll 
+# take the maximum step during each optimization.
+# it takes the error value associated first choice alpha (Ei)
+# and index i.
+def selectJ(i, oS, Ei):
+    maxK = -1; maxDeltaE = 0; Ej = 0
+    # put Ei to valid cache ( valid means it has been calculated )
+    oS.eCache[i] = [1, Ei]
+    # create a list of nonzero values in the eCache
+    validEcacheList = nonzero(oS.eCache[:, 0].A)[0]
+    if (len(validEcacheList)) > 1:
+        for k in validEcacheList:
+            if k == i: continue
+            Ek = calcEk(oS, k)
+            deltaE = abs(Ei - Ek)
+            # Choose j for maximum step size
+            if (deltaE > maxDeltaE):
+                maxK = k; maxDeltaE = deltaE; Ej = Ek
+        return maxK, Ej
+    # if first time through the loop, randomly select an alpha
+    else:
+        j = selectJrand(i, oS.m)
+        Ej = calcEk(oS, j)
+    return j, Ej
+
+def updateEk(oS, k):
+    Ek = calcEk(oS, k)
+    oS.eCache[k] = [1, Ek]
+
+def innerL(i, oS):
+    Ei = calcEk(oS, i)
+    if ((oS.labelMat[i] * Ei < -oS.tol) and (oS.alphas[i] < oS.C)) or \
+       ((oS.labelMat[i] * Ei > oS.tol) and (oS.alphas[i] > 0)):
+        j, Ej = selectJ(i, oS, Ei)
+        alphaIold = oS.alphas[i].copy(); alphaJold = oS.alphas[j].copy()
+        if (oS.labelMat[i] != oS.labelMat[j]):
+            L = max(0, oS.alphas[j] - oS.alphas[i])
+            H = min(oS.C, oS.C + oS.alphas[j] - oS.alphas[i])
+        else:
+            L = max(0, oS.alphas[j] + oS.alphas[i] - oS.C)
+            H = min(oS.C, oS.alphas[j] + oS.alphas[i])
+
+        if L == H: 
+            print("L==H"); 
+            return 0
+        eta = 2.0 * oS.X[i,:] * oS.X[j, :].T - oS.X[i, :] * oS.X[i, :].T - oS.X[j, :] * oS.X[j, :].T
+        if eta >= 0: 
+            print("eta>=0");
+            return 0
+        oS.alphas[j] -= oS.labelMat[j]*(Ei-Ej)/eta
+        oS.alphas[j] = clipAlpha(oS.alphas[j], H, L)
+        updateEk(oS, j)
+
+        if (abs(oS.alphas[j] - alphaJold) < 0.00001):
+            print("j not moving enough"); 
+            return 0
+        oS.alphas[i] += oS.labelMat[j] * oS.labelMat[i] * (alphaJold - oS.alphas[j])
+        updateEk(oS, i)
+        b1 = oS.b - Ei - oS.labelMat[i] * (oS.alphas[i] - alphaIold) * \
+                oS.X[i, :] * oS.X[i, :].T - oS.labelMat[j] * \
+                (oS.alphas[j] - alphaJold) * oS.X[i, :]*oS.X[j,:].T
+
+        b2 = oS.b - Ej - oS.labelMat[i] * (oS.alphas[i] - alphaIold) *\
+                oS.X[i,:]*oS.X[j,:].T - oS.labelMat[j] * \
+                (oS.alphas[j] - alphaJold) * oS.X[j,:] * oS.X[j,:].T
+        if (0 < oS.alphas[i]) and (oS.C > oS.alphas[i]): 
+            oS.b = b1
+        elif (0 < oS.alphas[j]) and (oS.C > oS.alphas[j]): 
+            oS.b = b2
+        else:  
+            oS.b = (b1+b2)/2.0
+        return 1
+    else:
+        return 0
+
+def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
+    # create OptStruct to hold all data
+    oS = OptStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler)
+    iter = 0
+    entireSet = True; alphaParisChanged = 0
+    while (iter < maxIter) and ((alphaParisChanged > 0) or (entireSet)):
+        alphaParisChanged = 0
+        if entireSet:
+            for i in range(oS.m):
+                alphaParisChanged += innerL(i, oS)
+            print("fullSet, iter: %d i:%d, pairs changed %d" % (iter, i, alphaParisChanged))
+            iter += 1
+        else:
+            nonBoundIds = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]
+            for i in nonBoundIds:
+                alphaParisChanged += innerL(i, oS)
+                print("non-bound, iter: %d i:%d, pairs changed %d" % (iter, i, alphaParisChanged))
+            iter += 1
+        if entireSet:
+            entireSet = False
+        elif (alphaParisChanged == 0):
+            entireSet = True
+        print("iteration number: %d" % iter)
+    # 1 will be returned if any pairs get changed
+    return oS.b, oS.alphas
