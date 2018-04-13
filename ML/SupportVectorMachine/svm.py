@@ -50,7 +50,7 @@ def plotBestFit(alpha, dataMat, labelMat):
     ax = fig.add_subplot(111)
     ax.scatter(xcord1, ycord1, s=30, c='red', marker='s')
     ax.scatter(xcord2, ycord2, s=30, c='green')
-    ax.scatter(xcord3, ycord3, s=60, c='black')
+    ax.scatter(xcord3, ycord3, s=60, c='black',linewidths=4,alpha=0.2)
 #    x = arange(-3.0, 3.0, 0.1)
 #    y = (-weights[0] - weights[1]*x)/weights[2]
 #    ax.plot(x, y)

@@ -13,7 +13,7 @@ def test():
     for i in range(100):
         if alphas[i]>0.0:
             print(dataA[i, 0], dataA[i, 1])
- #   svm.plotBestFit(alphas, dataArr, labelArr)
+    svm.plotBestFit(alphas, dataArr, labelArr)
     
     #print("dataArr:",dataArr)
     #print("labelArr:",labelArr)
