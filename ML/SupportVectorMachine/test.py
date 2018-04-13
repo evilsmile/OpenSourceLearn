@@ -4,7 +4,7 @@
 import svm
 from numpy import *
 
-def do_plt(alphas, dataArr):
+def do_plt(alphas, dataArr, labelArr):
     print(alphas)
     dataA = array(dataArr)
 
@@ -51,7 +51,7 @@ def test():
     dataArr, labelArr = svm.loadDataSet('testSet.txt')
     #b, alphas = svm.smoSimple(dataArr, labelArr, 0.6, 0.001, 40)
     b, alphas = svm.smoP(dataArr, labelArr, 0.6, 0.001, 40)
-    #do_plt(alphas, dataArr)
+    do_plt(alphas, dataArr, labelArr)
 
     ws = svm.calcWs(alphas, dataArr, labelArr)
     chk(dataArr, labelArr, ws, b)
