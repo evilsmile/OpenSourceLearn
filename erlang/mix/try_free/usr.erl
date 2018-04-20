@@ -9,6 +9,8 @@
 -export([lookup_msisdn/1, service_flag/2]).
 -behaviour(gen_server).
 
+-include("./usr.hrl").
+
 %% Exported Client Functions
 %% Operation & Maintenance API
 start_link() ->

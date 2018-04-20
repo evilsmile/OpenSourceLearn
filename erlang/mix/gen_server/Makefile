@@ -11,4 +11,4 @@ run:
 	${ERL} -s ${NAME} start_link -s ${NAME} test -s init stop
 
 clean:
-	rm -f *dump
+	rm -f *dump *beam

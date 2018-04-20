@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     rabbitMQ.exchange_declare(ALERT_EXCHANGE, ALERT_EXCHANGE_TYPE, true, false);
 
     rabbitMQ.queue_declare_and_bind_and_consume(CRITICAL_QUEUE, false, true, false, ALERT_EXCHANGE, CRITICAL_ROUTER);
-    rabbitMQ.queue_declare_and_bind_and_consume(RATING_QUEUE, false, true, false, ALERT_EXCHANGE, RATING_ROUTER);
+    //rabbitMQ.queue_declare_and_bind_and_consume(RATING_QUEUE, false, true, false, ALERT_EXCHANGE, RATING_ROUTER);
 
     rabbitMQ.rabbit_consume_loop();
 
