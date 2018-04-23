@@ -21,8 +21,8 @@ def plt(dataMat, classLabels):
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.scatter(xcord1, ycord1, s=30, c='red', marker='s')
-    ax.scatter(xcord2, ycord1, s=30, c='green')
+    ax.scatter(xcord1, ycord1, s=30, c='red')
+    ax.scatter(xcord2, ycord2, s=30, c='green', marker='s')
     plt.xlabel('X1'); plt.ylabel('X2');
     plt.show()
 
