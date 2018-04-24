@@ -79,7 +79,7 @@ def testRidge():
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.plt(ridgeWeights)
+    ax.plot(ridgeWeights)
     plt.show()
 
 def testStage():
