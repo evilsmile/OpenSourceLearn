@@ -12,7 +12,7 @@ def test():
     bestStump, minError, bestClassEst = adaboost.buildStump(datMat, classLabels, D) 
     print("bestStump: ", bestStump, " minError:", minError, " bestClasEst:", bestClassEst)
 
-    classifierArray = adaboost.adaBoostTrainDS(datMat, classLabels, 9)
+    classifierArray, classifierEst = adaboost.adaBoostTrainDS(datMat, classLabels, 9)
     print("classifierArray:", classifierArray)
 
     print(adaboost.adaClassify([0,0], classifierArray))
@@ -20,7 +20,7 @@ def test():
 
 def testHolic():
     datArr,labelArr = adaboost.loadDataSet('horseColicTraining2.txt')
-    classifierArray = adaboost.adaBoostTrainDS(datArr, labelArr, 10)
+    classifierArray, classifierEst = adaboost.adaBoostTrainDS(datArr, labelArr, 10)
 
     testArr, testLabelArr = adaboost.loadDataSet('horseColicTest2.txt')
     prediction10 = adaboost.adaClassify(testArr, classifierArray)
@@ -29,6 +29,8 @@ def testHolic():
     errArr = mat(ones((67,1)))
     errCnt = errArr[prediction10 != mat(testLabelArr).T].sum()
     print("err count:%d error rate:%.2f" % (errCnt, float(errCnt)/67))
+
+    adaboost.plotROC(classifierEst.T, labelArr)
     
 if __name__ == '__main__':
     #test()

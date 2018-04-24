@@ -39,13 +39,24 @@ def plt(dataMat, classLabels):
     plt.xlabel('X1'); plt.ylabel('X2');
     plt.show()
 
+# predStrengths:a NumPy array or matrix in a row vector form, 
+#               it's the strength of the classifier's predictions.
+# classLabels:
 def plotROC(predStrengths, classLabels):
     import matplotlib.pyplot as plt
+
+    # 'cur' holds cursor for plotting.
     cur = (1.0, 1.0)
+    # calculate the AUC(Area under curve)
     ySum = 0.0
+    # calculate the number of positive instances
+    # It will give the number of steps going to take in the y direction.
     numPosClass = sum(array(classLabels) == 1.0)
+    # adjust to plot range [0.0~1.0]
     yStep = 1/float(numPosClass)
     xStep = 1/float(len(classLabels)-numPosClass)
+    # get sorted index, from smallest to largest.
+    # start at (1.0,1.0) and draw to (0,0)
     sortedIndicies = predStrengths.argsort()
     fig = plt.figure()
     fig.clf()
@@ -171,7 +182,7 @@ def adaBoostTrainDS(dataArr, classLabels, numIt = 40):
         if errorRate == 0.0:
             break
 
-    return weakClassArr
+    return weakClassArr, aggClassEst
 
 def adaClassify(datToClass, classifierArr):
     # convert to maxtrix
