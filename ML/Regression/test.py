@@ -18,11 +18,12 @@ def test():
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.scatter(xMat[:,1].flattern().A[0], yMat.T[:,0].flattern().A[0])
+    ax.scatter(xMat[:,1].flatten().A[0], yMat.T[:,0].flatten().A[0])
 
     xCopy = xMat.copy()
     xCopy.sort(0)
-    yHat = xCopy(:,1], yHat)
+    yHat = xCopy*ws
+    ax.plot(xCopy[:,1], yHat)
     plt.show()
    
 if __name__ == '__main__':
