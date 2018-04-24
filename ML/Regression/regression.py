@@ -28,3 +28,32 @@ def standRegres(xArr, yArr):
     ws = xTx.I * (xMat.T * yMat)
 
     return ws
+
+# Create matrics from input data.
+# k controls how quickly the decay happens.
+def lwlr(testPoint, xArr, yArr, k=1.0):
+    xMat = mat(xArr); yMat = mat(yArr).T
+    m = shape(xMat)[0]
+    # Create diagonal matrix
+    # weights matrix is a square matrix with as many elements as data points.
+    weights = mat(eye((m)))
+    # Populate weights with exponentially decaying values
+    for j in range(m):
+        diffMat = testPoint - xMat[j,:]
+        weights[j,j] = exp(diffMat*diffMat.T/(-2.0*k**2))
+    xTx = xMat.T * (weights * xMat)
+    if linalg.det(xTx) == 0.0:
+        print("This matrix is singular, cannot do inverse")
+        return
+
+    ws = xTx.I * (xMat.T * (weights * yMat))
+    return testPoint * ws
+
+# call lwlr() for every point in the dataset.
+def lwlrTest(testArr, xArr, yArr, k=1.0):
+    m = shape(testArr)[0]
+    yHat = zeros(m)
+    for i in range(m):
+        yHat[i] = lwlr(testArr[i], xArr, yArr, k)
+    return yHat
+

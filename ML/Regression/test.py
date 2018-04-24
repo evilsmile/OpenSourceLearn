@@ -26,5 +26,25 @@ def test():
     ax.plot(xCopy[:,1], yHat)
     plt.show()
    
+
+def test2():
+    xArr, yArr = regression.loadDataSet('ex0.txt')
+    print("lwlr-1.0:",regression.lwlr(xArr[0], xArr, yArr, 1.0))
+    print("lwlr-0.001:",regression.lwlr(xArr[0], xArr, yArr, 0.001))
+
+    yHat = regression.lwlrTest(xArr, xArr, yArr, 0.003)
+    print("yHat:", yHat)
+    xMat = mat(xArr)
+    srtIdx = xMat[:,1].argsort(0)
+    xSort = xmat[srtIdx][:,0,:]
+
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(xSort[:,1], yhat[srtIdx])
+    ax.scatter(xMat[:,1].flatten().A[0], mat(yArr).T.flatten().A[0], s=2, c='red')
+    plt.show()
+
 if __name__ == '__main__':
-    test()
+    #test()
+    test2()
