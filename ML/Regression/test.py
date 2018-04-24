@@ -2,6 +2,7 @@
 #-*- coding:utf8
 
 import regression
+import helper
 from numpy import *
 
 def test():
@@ -81,8 +82,26 @@ def testRidge():
     ax.plt(ridgeWeights)
     plt.show()
 
+def testStage():
+    xArr,yArr = regression.loadDataSet('abalone.txt')
+    print("stageWise-0.01-200:", regression.stageWise(xArr, yArr, 0.01, 200))
+    print("stageWise-0.001-500:", regression.stageWise(xArr, yArr, 0.001, 500))
+
+    xMat = mat(xArr); yMat = mat(yArr).T
+    xMat = regression.regularize(xMat)
+    yM = mean(yMat, 0)
+    yMat = yMat - yM
+    weights = regression.standRegres(xMat, yMat.T)
+    print("normal-linear:", weights.T)
+
+def testLEG():
+    lgX = []; lgY = []
+    helper.setDataCollect(lgX, lgY)
+
 if __name__ == '__main__':
     #test()
     #test2()
     #testAbalone()
-    testRidge()
+    #testRidge()
+    #testStage()
+    testLEG()
