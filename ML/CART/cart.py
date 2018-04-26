@@ -23,8 +23,8 @@ def loadDataSet(fileName):
 def binSplitDataSet(dataSet, feature, value):
     # The two sets are created using array filtering for the given feature and value
 #    print("dataSet:", dataSet)
-    print("feature:", feature)
-    print("value:", value)
+#    print("feature:", feature)
+#    print("value:", value)
     mat0 = dataSet[nonzero(dataSet[:,feature]>value)[0], :]
     mat1 = dataSet[nonzero(dataSet[:,feature]<=value)[0], :]
     return mat0,mat1
@@ -62,7 +62,6 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1,4)):
     for featIndx in range(n-1):
         i=0
         for splitVal in set(dataSet[:, featIndx].T.A.tolist()[0]):
-            print("---%d" % i)
             i=i+1
             mat0, mat1 = binSplitDataSet(dataSet, featIndx, splitVal)
             print("shape(mat0)[0]:",shape(mat0)[0]," shape(mat1)[0]:",shape(mat1)[0])
@@ -82,3 +81,71 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1,4)):
     if (shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN):
         return None, leafType(dataSet)
     return bestIndx, bestValue
+
+def isTree(obj):
+    return (type(obj).__name__ == 'dict')
+
+def getMean(tree):
+    if isTree(tree['right']):
+        tree['right'] = getMean(tree['right'])
+    if isTree(tree['left']):
+        tree['left'] = getMean(tree['left'])
+    return (tree['left'] + tree['right'])/2.0
+
+# 如果树节点过多，则该模型可能对数据过拟合，通过降低决策树的复杂度来避免过拟合的过程称为剪枝。
+# 上面函数的chooseBestSplit中的三个提前终止条件是“预剪枝”操作，另一种形式的剪枝老板娘使用
+# 测试集和训练集，称为“后剪枝”。
+# 使用后剪枝方法需要将数据集交叉验证，首先给定参数，舍不得构建出的树足够复杂，之后从上而下找
+# 到叶节点，判断两个叶节点是否能够取得更好的测试误差，如果是就合并。
+# tree: tree to prune
+# testData: use for pruning the tree 
+def prune(tree, testData):
+    # check if empty
+    if shape(testData)[0] == 0:
+        return getMean(tree)
+
+    if (isTree(tree['right']) or isTree(tree['left'])):
+        lSet, rSet = binSplitDataSet(testData, tree['spInd'], tree['spVal'])
+
+    if isTree(tree['left']):
+        tree['left'] = prune(tree['left'], lSet)
+
+    if isTree(tree['right']):
+        tree['right'] = prune(tree['right'], rSet)
+
+    if not isTree(tree['left']) and not isTree(tree['right']):
+        lSet, rSet = binSplitDataSet(testData, tree['spInd'], tree['spVal'])
+        errorNoMerge = sum(power(lSet[:,-1] - tree['left'], 2)) + \
+                       sum(power(rSet[:,-1] - tree['right'], 2))
+        treeMean = (tree['left'] + tree['right'])/2.0
+        errorMerge = sum(power(testData[:,-1] - treeMean, 2))
+        if errorMerge < errorNoMerge:
+            print("Mergeing")
+            return treeMean
+        else:
+            return tree
+    else:
+        return tree
+
+# Format the dataset into the target variable Y and independent variable X.
+# X and Y are used to perform a simple linear regression.
+def linearSolve(dataSet):
+    m,n = shape(dataSet)
+    X = mat(ones((m,n))); Y = mat(ones((m,1)))
+    X[:,1:n] = dataSet[:,0:n-1]; Y = dataSet[:,-1]
+    xTx = X.T*X
+    if linalg.det(xTx) == 00:
+        raise NameError("This matrix is singular, cannot do inverse, \ntry increasing the second value of ops")
+    wx = xTx.I * (X.T *Y)
+    return wx, X, Y
+
+# Generate a model for a leaf node once you've determined to no longer split the data.
+def modelLeaf(dataSet):
+    ws, X, Y = linearSolve(dataSet)
+    return ws
+
+# Compute the error for a given dataset.
+def modelErr(dataSet):
+    ws, X, Y = linearSolve(dataSet)
+    yHat = X * ws
+    return sum(power(Y - yHat, 2))
