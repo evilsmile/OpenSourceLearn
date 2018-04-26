@@ -11,7 +11,7 @@ def test():
     tree = cart.createTree(myMat)
     print("createTree:", tree)
 
-    plot.plot(myMat[:,0], myMat[:,1], 'ro')
+    plt.plot(myMat[:,0], myMat[:,1], 'ro')
     plt.show()
     
 if __name__ == '__main__':

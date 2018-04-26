@@ -54,7 +54,7 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1,4)):
     tolS = ops[0]; tolN = ops[1]
     # Exit if all values are equal
     if len(set(dataSet[:,-1].T.tolist()[0])) == 1:
-        return None, leafType(datSet)
+        return None, leafType(dataSet)
 
     m,n = shape(dataSet)
     S = errType(dataSet)
