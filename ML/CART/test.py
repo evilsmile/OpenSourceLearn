@@ -50,9 +50,21 @@ def test():
 def testBike():
     trainMat = mat(cart.loadDataSet('bikeSpeedVsIq_train.txt'))
     testMat = mat(cart.loadDataSet('bikeSpeedVsIq_test.txt'))
+
     myTree = cart.createTree(trainMat, ops=(1,20))
     yHat = cart.createForeCast(myTree, testMat[:,0])
-    print corrcoef(yHat, testMat[:,1], rowvar=0)[0,1]
+    print("Regression-Tree-corrcoef:", corrcoef(yHat, testMat[:,1], rowvar=0)[0,1])
+
+    myTree = cart.createTree(trainMat, cart.modelLeaf, cart.modelErr, ops=(1,20))
+    yHat = cart.createForeCast(myTree, testMat[:,0], cart.modelTreeEval)
+    print("Model-Tree-corrcoef:", corrcoef(yHat, testMat[:,1], rowvar=0)[0,1])
+
+    ws, X, y = cart.linearSolve(trainMat)
+#    print("ws:", ws)
+    for i in range(shape(testMat)[0]):
+        yHat[i] = testMat[i, 0]*ws[1,0]+ws[0,0]
+    print("Linear-Regression-corrcoef:", corrcoef(yHat, testMat[:,1], rowvar=0)[0,1])
+
  
 if __name__ == '__main__':
     #test()
