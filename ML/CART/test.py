@@ -45,6 +45,15 @@ def test():
         plt.plot(myMat2[:,0], myMat2[:,1], 'ro')
         plt.show()
     print("ModelTree:", myModelTree)
+
+    
+def testBike():
+    trainMat = mat(cart.loadDataSet('bikeSpeedVsIq_train.txt'))
+    testMat = mat(cart.loadDataSet('bikeSpeedVsIq_test.txt'))
+    myTree = cart.createTree(trainMat, ops=(1,20))
+    yHat = cart.createForeCast(myTree, testMat[:,0])
+    print corrcoef(yHat, testMat[:,1], rowvar=0)[0,1]
  
 if __name__ == '__main__':
-    test()
+    #test()
+    testBike()
