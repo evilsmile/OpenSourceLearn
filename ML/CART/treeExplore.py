@@ -14,7 +14,7 @@ def drawNewTree():
 
 def drawTest():
 	root=Tk()
-	Label(root, text="Plot place holder").grid(row=0, columnspan=3)
+	Label(root, text="Plot Place Holder").grid(row=0, columnspan=3)
 	Label(root, text="tolN").grid(row=1, column=0)
 	tolNentry=Entry(root)
 	tolNentry.grid(row=1, column=1)
@@ -30,8 +30,7 @@ def drawTest():
 	chkBtn.grid(row=3, column=0, columnspan=2)
 	
 	reDraw.rawDat = mat(cart.loadDataSet('sine.txt'))
-	reDraw.testDat = arange(min(reDraw.rawDat[:,0]), \
-	                        max(reDraw.rawDat[:,0]), 0.01)
+	reDraw.testDat = arange(min(reDraw.rawDat[:,0]), max(reDraw.rawDat[:,0]), 0.01)
 	
 	reDraw(1.0, 10)
 	root.mainloop()
