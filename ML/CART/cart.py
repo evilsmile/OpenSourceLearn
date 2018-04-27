@@ -176,7 +176,7 @@ def treeForeCast(tree, inData, modelEval=regTreeEval):
 
 def createForeCast(tree, testData, modelEval=regTreeEval):
     m=len(testData)
-    yHat = mat((m,1))
+    yHat = mat(zeros((m,1)))
     for i in range(m):
         yHat[i,0] = treeForeCast(tree, mat(testData[i]), modelEval)
     return yHat
