@@ -19,5 +19,16 @@ def test():
     print("myCentroids:", myCentroids)
     print("clustAssing:", clustAssing)
 
+
+def test2():
+    datMat3 = mat(kmeans.loadData('testSet2.txt'))
+    centList, myNewAssments = kmeans.biKmeans(datMat3, 3)
+    print("centList:", centList, "newAssment:", myNewAssments)
+
+def test3():
+    kmeans.massPlaceFind('portlandClubs.txt')
+
 if __name__ == '__main__':
-    test()
+#    test()
+#    test2()
+    test3()
