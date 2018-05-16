@@ -124,11 +124,11 @@ void init()
 void help()
 {
 
-    std::cerr << "Usage: create exchange_name queue_name route_key" 
+    std::cerr << "Usage: create exchange_name queue_name route_key" << std::endl
         << "       purge queue_name" << std::endl
         << "       query_msg_cnt queue_name" << std::endl
         << "       consume queue_name get_msg_cnt" << std::endl
-        << "       publish exchange_name route_key msg" << std::endl
+        << "       publish exchange_name route_key msg [msg_cnt]" << std::endl
         ;
     exit(-1);
 }
@@ -293,9 +293,16 @@ void publish(int argc, char* argv[])
         help();
     }
 
+    const int MSG_CNT = 10000;
+
     ex_name = argv[2];
     rt_key = argv[3];
     std::string msg = argv[4];
+    int msg_cnt = MSG_CNT;
+    if (argc > 5)
+    {
+        msg_cnt = atoi(argv[5]);
+    }
 
     amqp_basic_properties_t props;
     props._flags = AMQP_BASIC_DELIVERY_MODE_FLAG;      
@@ -307,17 +314,20 @@ void publish(int argc, char* argv[])
     message_bytes.len = msg.size();
     message_bytes.bytes = (void*)(msg.c_str());
 
-    if (amqp_basic_publish(conn,                              /* state */
-                channel_id,                                   /* channel */
-                amqp_cstring_bytes(ex_name.c_str()),          /* exchange */
-                amqp_cstring_bytes(rt_key.c_str()),           /* routekey */
-                1,                                            /* mandatory */
-                0,                                            /* immediate */
-                &props,                                       /* properties */
-                message_bytes                                 /* body */
-                ) < 0) {
-        std::cerr << "basic publish failed." << std::endl;
-        return;
+    for (int i = 0; i < msg_cnt; ++i)
+    {
+        if (amqp_basic_publish(conn,                              /* state */
+                    channel_id,                                   /* channel */
+                    amqp_cstring_bytes(ex_name.c_str()),          /* exchange */
+                    amqp_cstring_bytes(rt_key.c_str()),           /* routekey */
+                    1,                                            /* mandatory */
+                    0,                                            /* immediate */
+                    &props,                                       /* properties */
+                    message_bytes                                 /* body */
+                    ) < 0) {
+            std::cerr << "basic publish failed." << std::endl;
+            return;
+        }
     }
 }
 
