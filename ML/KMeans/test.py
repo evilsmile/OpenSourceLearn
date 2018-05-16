@@ -26,7 +26,8 @@ def test2():
     print("centList:", centList, "newAssment:", myNewAssments)
 
 def test3():
-    kmeans.massPlaceFind('portlandClubs.txt')
+    #kmeans.massPlaceFind('portlandClubs.txt')
+    kmeans.clusterClubs()
 
 if __name__ == '__main__':
 #    test()
