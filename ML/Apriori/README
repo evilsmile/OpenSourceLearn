@@ -1,0 +1,38 @@
+Association analysis is a set of tools used to find interesting relationships in a large set
+of data. There are two ways you can quantify the interesting relationships. The first way is 
+a frequent itemset, which shows items that commonly appear in the data together. The second
+way of measuring interesting relationships is association rules. Association rules imply an
+if ..then relationship between items.
+
+Finding different combinations of items can be a time-consuming task and prohibitively expensive
+in terms of computing power. More intelligent approches are needed to find frequent itemsets in 
+a reasonable amount of time. One such approches is the Aprior algorithm, which uses the Aprior
+principle to reduce the number of sets that are checked against the dataset. The Aprior principle
+states that if an item is infrequent, then supersets containing that item will also be infrequent.
+The Aprior algorithm starts from single itemsets and creates larger sets by combining sets that
+meet the minimum support measure. Support is used to measure how often a set appear in the 
+original data.
+
+Once frequent itemsets have been found, you can use the frequent itemsets to generate assocation
+rules. The significance of an association rule is measured by confidence. Confidence tells you 
+how many times this rule applies to the frequent itemsets.
+
+Association analysis can be performed on many different items. Some common examples are items in 
+a store and pages visited on a website. Association analysis has also been used to look at the 
+voting history of elected officials and judges.
+
+The Aprior algorithm scans over the dataset each time you increase the length of your frequent 
+itemset. When the datasets become very large, this can drastically reduce the speed of find frequent
+itemset.
+
+
+商户通过会员卡等忠诚度计划，可以获取顾客所购买商品的组合信息，从而更好地安排商品定价、市场促销等。
+从大规模数据集中寻找物品间的隐含关系被称作关联分析或者关联规则学习。Aprior算法可以解决计算代价极高
+的物品组合问题，从而在合理的时间范围内找到频繁项集和关联规则。
+
+关联分析是一种在大规模数据集中寻找关系的任务，这些关系可以有两种形式：频繁项集或者关联规则。频繁项
+集是经常出现在一起的物品的集合，关联规则则暗示两种物品之间存在很强的因果关系。
+
+一个项集的支持度被定义为数据集中包含该项集的记录所占的比例。可信度或置信度是针对一条例如{尿布}->{啤酒}
+的关联规则定义的，这条规则的可信度被定义为 “支持度({尿布，啤酒}/支持度({尿布})。假设这条规则的置信度
+是75%，那么对于所有包含"尿布"的记录，这条规则对其中的75%都适用.
