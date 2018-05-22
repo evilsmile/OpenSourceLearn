@@ -1,0 +1,13 @@
+The FP-growth algorithm is an efficient way of finding frequent patters in a dataset.
+The FP-growth algorithm works with the Apriori principle but is much faster. The 
+Apriori algorithm generates candidate itemsets and then scans the dataset to see if
+they're frequent. FP-growth is faster because it goes over the database only twice. 
+The database is stored in a structure called an FP-tree, After the FP-tree is built, 
+you can find frequent itesmsets by find conditional bases for an item and bulding a 
+conditional FP-tree. This process is repeated, conditioning on more items untils the 
+conditional FP-tree has only one item.
+
+   The FP-growth algorithm can be used to find frequent words in a series of text
+documents. There are a number of uses for frequent itemset generation such as 
+shopping transactions, medical diagnosis, and study of the atmosphere.
+   
