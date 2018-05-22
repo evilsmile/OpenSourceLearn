@@ -13,7 +13,9 @@ def test():
     import matplotlib.pyplot as plt
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.scatter(dataMat[:,0].flattern().A[0], dataMat[:,1].flattern().A[0], marker='^'
+    ax.scatter(dataMat[:,0].flattern().A[0], dataMat[:,1].flattern().A[0], marker='^', s=90)
+    ax.scatter(reconMat[:,0].flattern().A[0], reconMat[:1].flattern().A[0], marker='o', s=50, c='red')
+    plt.show()
 
 if __name__ == '__main__':
     test()
