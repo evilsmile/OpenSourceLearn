@@ -11,3 +11,13 @@ conditional FP-tree has only one item.
 documents. There are a number of uses for frequent itemset generation such as 
 shopping transactions, medical diagnosis, and study of the atmosphere.
    
+
+FP-growth算法基于Apriori构建，先将数据集存储在FP树内，再发现频繁项集，速度通常快于
+Apriori两个数量级以上。FP-growth只需要对数据库扫描两次，而Apriori需要对每个潜在的
+频繁项集扫描一次数据集。Apriori算法拓展性好， 可以用于并行计算.
+FP-growth算法速度优于Apriori，但实现相对困难，在某些数据集上性能会下降，适用于标称
+型数据。FP代表频繁模式，FP-growth算法将数据存储在FP树中。
+FP树通过链接来连接相似元素，被连接的元素可以看成一个链表. 与搜索树不同的是，一个元素
+项可以在FP树中出现多次，FP树会存储项集的出现频繁，而每个项集以路径的方式存储在树中
+（类似字典树），存在相似元素的集合会共享树的一部分，树节点上给出集合中的单个元素及
+其在序列中的出现次数，路径会给出该序列的出现次数。

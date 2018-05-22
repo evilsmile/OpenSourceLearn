@@ -2,6 +2,14 @@
 #-*- coding:utf8
 # FP - Frequent Pattern
 
+# 生成FP树的事务数据样例
+# 事务ID  事务中的元素项
+# 001 r, z, h, j, p
+# 002 z, y, x, w, v, u, t, s
+# 003 z
+# 004 r, x, n, o, s
+# 005 y, r, x, z, q, t, p
+# 006 y, z, x, e, q, s, t, m
 def loadSimpleData():
     simplDat = [['r', 'z', 'h', 'j', 'p'],
                 ['z', 'y', 'x', 'w', 'v', 'u', 't', 's'],
@@ -43,6 +51,7 @@ class treeNode:
 # The header table is slightly expanded so it can hold a count and pointer to the first item
 # of each type.
 def createTree(dataSet, minSup=1):
+    # 头指针表，存储FP树中元素第一次出现的位置和该元素的总数
     headerTable = {}
     for trans in dataSet:
         for item in trans:
@@ -71,6 +80,7 @@ def createTree(dataSet, minSup=1):
                 localD[item] = headerTable[item][0]
 
         # sort transactions by global frequency
+        # {'y': 3, 'x': 4, 'r': 3, 't': 3, 'z': 5}
         if len(localD) > 0:
             orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p:p[1], reverse=True)]
             # Populate tree with ordered freq itemset
@@ -91,7 +101,7 @@ def updateTree(items, inTree, headerTable, count):
         else:
             updateHeader(headerTable[items[0]][1], inTree.children[items[0]])
 
-    # Recursively call upatTre on remaining items.
+    # Recursively call updateTree on remaining items.
     if len(items) > 1:
         updateTree(items[1::], inTree.children[items[0]], headerTable, count)
 
@@ -99,7 +109,6 @@ def updateHeader(nodeToTest, targetNode):
     while (nodeToTest.nodeLink != None):
         nodeToTest = nodeToTest.nodeLink
     nodeToTest.nodeLink = targetNode
-
 
 def ascendTree(leafNode, prefixPath):
     if leafNode.parent != None:
@@ -116,10 +125,13 @@ def findPrefixPath(basePat, treeNode):
         treeNode = treeNode.nodeLink
     return condPats
 
-
+# mineTree对参数inTree代表的FP树进行频繁项集挖掘。
 def mineTree(inTree, headerTable, minSup, preFix, freqItemList):
     # Start from bottom of header table
+    # 按元素出现频率从小到大排序
     bigL = [v[0] for v in sorted(headerTable.items(), key=lambda p:p[1])]
+
+    # bigL:  ['y', 's', 't', 'r', 'x', 'z']
 
     for basePat in bigL:
         newFreqSet = preFix.copy()

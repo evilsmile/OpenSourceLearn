@@ -22,7 +22,7 @@ def test2():
 
     freqItems = []
     fpGrowth.mineTree(myFPtree, myHeaderTab, 3, set([]), freqItems)
-    print freqItems
+    print "freqItems: ", freqItems
 
 def test3():
     parsedDat = [line.split() for line in open('kosarak.dat').readlines()]
@@ -34,5 +34,5 @@ def test3():
 
 if __name__ == '__main__':
     #test()
-    #test2()
-    test3()
+    test2()
+    #test3()
