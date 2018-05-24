@@ -1,0 +1,50 @@
+The singular value decompression (SVD) is a powerful tool for dimensionality reduction.
+You can use the SD to approximate a matrix and get out the important features. By taking
+only the top 80% or 90% of the energy in the matrix, you get the important features and 
+throw out the noise. The SVD is employed in a number of applications today. One successful
+application is in recommendation engines.
+
+Recommendations engines recommend an item to a user. Collaborative filtering is one way of 
+creating recommendations based on data of users' preferences or actions. At the heart of 
+collaborative filtering is a similarity metric. A number of similarity metrics can be 
+used to calculate the similarity between items or users. The SVD can be used to improve
+recommendation engines by calculating similarities in a reduced number of dimensions.
+
+Calculating the SVD and recommendations can be a difficult engineerning problem on massive
+datasets. Taking the SVD and similarity calculations offline is one method of reducing 
+redundant calculations and reducing the time required to produce a recommendation.
+
+
+从数据中提取一些关键信息可以使用奇异值分解(SVD)，可以简化数据，去除噪声，装饰数据映射到低维空间。
+
+【SVD应用】：
+  奇异值分解的优点是简化数据，去除噪声，提高算法结果，用小得多的数据集表示原始数据集，实际上
+是取出了噪声。缺点是数据的转换可能难以理解，适用于数据型数据。
+  隐性语义索引(Latent Semantic Indexing, LSI)是SVD最早的应用之一。在LSI中，一个矩阵是由文档和
+词语组成的，在该矩阵上应用SVD时，会构建出多个奇异值。这些奇异值代表了文档中的概念或主题。该
+特点可以用于更高效的文档搜索。在词语拼写错误或者出现同义词时，只基于词语存在与否的搜索方法会
+遇到问题，如果使用SVD从上千篇相似文档中抽取概念，那么同义词会被映射为同一概念。
+  推荐系统。利用SVD从数据中构建一个主题空间，然后再在该空间下计算其相似度。
+
+
+【矩阵分解】：
+   很多情况下数据中的一小段携带了数据集中的大部分信息。其他信息要么是噪声，要么是毫不相关的信息。
+矩阵分解可以将原始矩阵表示成新的易于处理的形式，过程类似代数中的因子分解。SVD是最最常见的一种
+矩阵分解打磨，SVD将原始数据集Data分解为三个矩阵，U,Sigma,VT,这三个矩阵分别是MxM, MxN, NxN. 其中
+矩阵Sigma只有对角元素，其它元素均为0，Sigma的对角元素是从大到小排列的，这些对角元素称为奇异值。
+它们对应了原始数据Data的奇异值。这里的奇异值就是矩阵 Data*Data^T的特征值的平方根。
+   在某个奇异值 的数据(r个)之后，其他奇异值都置为0，这意味着数据集只有r个重要特征，其余特征都是
+噪声或冗余特征.
+
+   numpPY中的linalg有一个svd方法， U, Sigma, VT = linalg.svd(Data)。注意Sigma虽然是矩阵，但是为了
+节约空间以array的形式返回。
+
+
+SVD在大数据集上会显著降低程序速度，可以仅在程序调入运行时离线加载一次。其中计算出的相似度是物品和
+物品之间的相似度，不同的用户也可以重复使用，因此可以将计算结果离线。当出现冷启动问题时，可以将推荐
+看成搜索问题，为物品添加标签，使用基于内容的推荐。 
+
+SVD可以逼近矩阵并从中提取重要特征。通过保留矩阵80%~90%的能量，可以去除噪声，保留重要特征，在稀疏
+矩阵上压缩作用显著。SVD的其中一个应用是推荐引擎，协同过滤基于用户喜好或者行为数据来推荐，核心是
+相似度计算方法，SVD可以将高维用户群体降维成少数奇异值，提高推荐引擎效果。在大规模数据集上，SVD的
+冗余计算会占用过多时间，可以通过离线方式SVD分解和相似度计算。
