@@ -6,6 +6,7 @@ from numpy import *
 
 def test():
     dataSet = apriori.loadDataSet()
+    print "DataSet:", dataSet
     L,suppData = apriori.apriori(dataSet)
     rules = apriori.generateRules(L, suppData, minConf=0.5)
     print rules
@@ -18,5 +19,5 @@ def test2():
             print item
     
 if __name__ == '__main__':
-    #test()
-    test2()
+    test()
+    #test2()

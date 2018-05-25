@@ -59,6 +59,7 @@ def apriorGen(Lk, k):
 #  generate a list of candidate itemset
 def apriori(dataSet, minSupport = 0.5):
     C1 = createC1(dataSet)
+    print "C1:", C1
     D = map(set, dataSet)
     L1, supportData = scanD(D, C1, minSupport)
     L = [L1]
