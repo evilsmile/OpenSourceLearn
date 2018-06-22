@@ -1,13 +1,14 @@
 .phony: clean
 
 CXXFLAGS=-g --std=c++11
-BINS=test test_forward test_move test_reffold test_mystr_Rref test_var_temp test_valuetype
+LDFLAGS=-pthread
+BINS=$(shell ls *cpp | sed 's/\.cpp//g')
 
 all:${BINS}
 	@echo ${BINS} | sed 's/ /\r\n/g' > .gitignore
 
 %:%.cpp
-	g++ ${CXXFLAGS} -o $@ $< 
+	g++ ${CXXFLAGS} -o $@ $<  ${LDFLAGS}
 
 clean:
 	rm -f ${BINS}

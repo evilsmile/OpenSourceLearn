@@ -1,7 +1,10 @@
 test
 test_forward
+test_lambda
 test_move
-test_reffold
 test_mystr_Rref
-test_var_temp
+test_packged_task
+test_promise
+test_reffold
 test_valuetype
+test_var_temp

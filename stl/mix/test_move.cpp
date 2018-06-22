@@ -1,4 +1,7 @@
 #include <iostream>
+#include <string>
+
+using namespace std;
 
 class A {
 public:
@@ -40,6 +43,18 @@ int main()
     A a1;
     // 左值引用转换为右值引用
     A a2(std::move(a1));
+
+    string s1("S1");
+    // move makes "S1" from s1 to s2
+    string s2(std::move(s1));
+    string s3(s2);
+    string s4;
+    // ""
+    std::cout << "s1: " << s1 << std::endl;
+    // "S1"
+    std::cout << "s2: " << s2 << std::endl;
+    // "S1"
+    std::cout << "s3: " << s3 << std::endl;
 
     std::cout << a1.array << std::endl;
     std::cout << a2.array << std::endl;
