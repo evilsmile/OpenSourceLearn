@@ -1,0 +1,20 @@
+var abi = eth.contract(--{ABI}--);
+var deploy = abi.new( {                               
+	from: web3.eth.accounts[0],                                 
+    data: "0x--{DATA}--",
+    gas: "--{GASFEE}--"
+	}, function(e, c) {                                         
+	   if (!e) {                                                
+           console.log("-----------< Callback Called! >--------------");
+           console.log(c);                                      
+           if (typeof c.address !== 'undefined') {              
+                 console.log('Contract mined! address: ' + c.address + ' transactionHash: ' + c.transactionHash); 
+           }                                                      
+           else {
+                 console.log('Contract waiting for mining ' + c.transactionHash + "....");
+           }
+      }                                                         
+	  else {                                                    
+	     consloe.log(e);                                        
+	  }                                                         
+}); 
