@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CrowdSale Admin Page</title>
+  <script src="./app.js"></script>
+</head>
+<body>
+  <h2>CrowdSale Admin</h2><br>
+  <h1>CrowdSale Info</h1><br>
+  <span id="countdown_show" style="color:red">0 Days 0 Hours 0 Mins 0 Secs</span><br>
+  <br><label>Beneficiary Address: </label><label id="benef_addr_label"></label>
+  <hr>
+  <br><label>Raised Amount: </label><label id="raised_amount_label"></label>
+  <button onclick="App.refreshAmountRaised()">refresh</button>
+  <hr>
+  <br><label>Crowdsale Amount:</label><label id="crowdsale_amount_label"></label>
+  <hr>
+  <br><label>Price:</label><label id="price_label"></label>
+  <hr>
+  <br><label>Goal Reached:</label><label id="goal_reached_label"></label>
+  <hr>
+  <br><label>Closed:</label><label id="closed_label"></label>
+  <br><br>
+  <button id="check" onclick="App.checkGlobalReached()">Check</button>
+  <button id="withdraw" onclick="App.safeWithdrawal()">WithDraw</button>
+  <br><br>
+  <hr>
+  <div id="crowdsale_input_div" style="display:none" width=1024>
+      <label for="balance_show">Balance (Ether) :</label><label width="700" id="balance_show">0.0 Ether</label> <br>
+      <label for="crowded_amount">Crowded Amount (Ether) :</label><label width="700" id="crowded_amount">0.0 Ether</label> <br>
+      <label width="100" for="sender">From Address :</label><label id="sender">0x....</label> <br>
+      <label width="100" id="tokens_amount_tip" for="tokens_amount"></label><label id="tokens_amount"></label><br><br>
+      <label width="100" for="pay_amount">Transfer Amount (Ether) :</label><input type="text" id="pay_amount" placeholder="e.g. 0.95"></input><br><br>
+      <button id="send_crowdsale" onclick="App.payCrowdsale()">Send</button>
+      <button id="close_crowdsale" onclick="App.showOrHideCrowdsale(true)">Close</button>
+  </div>
+  <table id="acnt_bal_tbl">
+      <tr> <th>Account</th> <th>Operation</th> </tr>
+
+  </table>
+</body>
+</html>
