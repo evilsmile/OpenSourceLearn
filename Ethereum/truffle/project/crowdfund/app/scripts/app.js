@@ -35,7 +35,7 @@ const App = {
     web3.eth.getAccounts(function (err, accs) {
       if (err != null) {
         alert('There was an error fetching your accounts.')
-        return;
+        return
       }
 
       if (accs.length === 0) {
@@ -193,8 +193,14 @@ const App = {
             from: sender,
             to: Crowdsale.address,
             value: amount
-        }, function () {
-            console.log("send ok")
+        }, function (err, txHash) {
+
+            if (!err) {
+                console.log("send ok. TXHash: ", txHash)
+            } else {
+                alert("Pay ERRR: " + err);
+            }
+
             web3.eth.getBalance(sender, function(err, res) 
                 {
                     console.log("sender new bal:", res.toNumber());

@@ -14,8 +14,8 @@ module.exports = function (deployer, network, accounts) {
         const ifSuccessfulSendTo = web3.eth.accounts[5];
         const fundingGoalInEthers = 1;
         // 30 MIN
-        //var durationInSeconds = 30 * 60;
-        var durationInSeconds = 3 * 60;
+        var durationInSeconds = 30 * 60;
+        //var durationInSeconds = 3 * 60;
 
         if (network == "test") {
             durationInSeconds = 1;
