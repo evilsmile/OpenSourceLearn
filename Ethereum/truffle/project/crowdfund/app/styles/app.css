@@ -1,52 +1,92 @@
 body {
-  margin-left: 25%;
-  margin-right: 25%;
-  margin-top: 10%;
-  font-family: "Open Sans", sans-serif;
+    background-image: url(http://subtlepatterns.com/patterns/ricepaper.png); 
+    margin-left: 25%;
+    margin-right: 25%;
+    margin-top: 10%;
+    font-family: "Open Sans", sans-serif;
 }
 
 label {
-  display: inline-block;
-  width: 200px;
+    font-family: Georgia;
+    display: inline-block;
+    width: 200px;
+    margin: 5px;
 }
 
 input {
-  width: 400px;
-  padding: 5px;
-  font-size: 16px;
+    width: 400px;
+    padding: 5px;
+    margin: 5px;
+    font-size: 16px;
 }
 
 button {
-  font-size: 16px;
-  padding: 5px;
+    font-size: 16px;
+    padding: 5px;
 }
 
+button#refresh_btn {
+    background: url(../imgs/refresh_icon.png) no-repeat fixed center;
+    background-size: 5px 5px;
+}
+
+td, th {
+    font-size: 18px;
+    font-family: Georgia;
+    border: 0px solid blue;
+    margin: 5px;
+    padding: 5px;
+}
+
+td {
+    text-align: left;
+}
+
+.td_title {
+    text-align: right;
+}
+
+th {
+    text-align: center;
+    font-size: 19px;
+}
+
+table
+{
+    border-collapse:collapse;
+}
+
+table td label {
+    width: 400;
+}
+
+
 h1, h2 {
-  display: inline-block;
-  vertical-align: middle;
-  margin-top: 0px;
-  margin-bottom: 10px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: 0px;
+    margin-bottom: 10px;
 }
 
 h2 {
-  color: #AAA;
-  font-size: 32px;
+    color: #AAA;
+    font-size: 32px;
 }
 
 h3 {
-  font-weight: normal;
-  color: #AAA;
-  font-size: 24px;
+    font-weight: normal;
+    color: #AAA;
+    font-size: 24px;
 }
 
 .black {
-  color: black;
+    color: black;
 }
 
 #balance {
-  color: black;
+    color: black;
 }
 
 .hint {
-  color: #666;
+    color: #666;
 }

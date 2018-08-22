@@ -1,5 +1,5 @@
 var Crowdsale = artifacts.require("./Crowdsale.sol");
-var MyAdvancedToken = artifacts.require("./MyAdvancedToken.sol");
+var SimpleToken = artifacts.require('./SimpleToken.sol');
 
 contract("Crowdsale", function(accounts) {
     const ETHER = 1e18
@@ -32,7 +32,7 @@ contract("Crowdsale", function(accounts) {
             return web3.eth.getBalance(BENEFICIARY_ADDR);
         }).then(function(bal) {
             beneficiaryBalance = bal.toNumber();
-        });
+            console.log("beneficiary has eth balance of ", beneficiaryBalance); });
     });
 
     it("check amountRaised value", function() {
@@ -63,24 +63,28 @@ contract("Crowdsale", function(accounts) {
 
         }).then(function(bal) {
 
+            console.log("Get Crowdsale's balance is ", bal.toNumber());
             return meta.rewardTokenAddr.call();
         }).then(function(tokenAddr) {
 
-            rewardTokenInstance = MyAdvancedToken.at(tokenAddr);
+            rewardTokenInstance = SimpleToken.at(tokenAddr);
 
             // TokenTransfer: tokenOwner(accounts[0]) => Crowdsale.address
 
-//            return rewardTokenInstance.transferTo(Crowdsale.address, InitCrowdsaleTokenBalance, {from: tokenOwnerAddr});
+            return rewardTokenInstance.transferTo(Crowdsale.address, InitCrowdsaleTokenBalance, {from: tokenOwnerAddr});
 
         }).then(function() {
 
+            console.log("Init Crowdsale token success.");
             return rewardTokenInstance.balanceOf.call(Crowdsale.address);
 
         }).then(function(crowdsaleTokenBal) {
 
+            console.log("Crowdsale token balance: ", crowdsaleTokenBal.toNumber());
             return rewardTokenInstance.balanceOf.call(tokenOwnerAddr);
 
         }).then(function(ownerTokenBal) {
+            console.log("Owner token balance: ", ownerTokenBal.toNumber());
         });
     });
 
@@ -94,32 +98,34 @@ contract("Crowdsale", function(accounts) {
 
             return meta.price.call();
         }).then(function(p) {
+            console.log("price is ", p.toNumber());
 
             return rewardTokenInstance.balanceOf.call(Crowdsale.address);
 
         }).then(function(crowdsaleTokenBal) {
+            console.log("--> Crowdsale token balance: ", crowdsaleTokenBal.toNumber());
             return rewardTokenInstance.balanceOf.call(tokenOwnerAddr);
         }).then(function(ownerTokenBal) {
+            console.log("--> Owner token balance: ", ownerTokenBal.toNumber());
 
             return meta.beneficiary.call();
 
         }).then(function(addr) {
-            //console.log("transfer address ", addr);
-           // console.log("contract address ", Crowdsale.address);
+            console.log("transfer address ", addr);
+            console.log("contract address ", Crowdsale.address);
 
             return web3.eth.sendTransaction({
                 from: SALER_ONE,
                 to: Crowdsale.address,
-                value: 4 * ETHER,
-                gas: "158575"
+                value: 4 * ETHER
             });
 
         }).then(function() {
+            console.log("sale1 charged.");
             return web3.eth.sendTransaction({
                 from: SALER_TWO,
                 to: Crowdsale.address,
-                value: 6 *ETHER,
-                gas: "158575"
+                value: 6 *ETHER
             });
 
         }).then(function() {
@@ -135,7 +141,6 @@ contract("Crowdsale", function(accounts) {
         }).then(function(goal) {
 
             assert.equal(amountRaised, goal.toNumber(), "After two salers' crowdsale the amount should match wanting");
-
             return meta.checkGlobalReached({from: SALER_ONE});   
 
         }).then(function() {
@@ -158,6 +163,7 @@ contract("Crowdsale", function(accounts) {
 
         }).then(function(bal) {
 
+            console.log("After crowdsale beneficiary has balance of ", bal.toNumber());
             assert.equal(parseInt((expFundingGoal+beneficiaryBalance)/ETHER), parseInt(bal.toNumber()/ETHER), "After crowdsale beneficiary should get all ethers for it.");
 
         });

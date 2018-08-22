@@ -1,8 +1,9 @@
 pragma solidity ^0.4.18;
 
 interface token {
-    function transfer(address receiver, uint amount) external;
+    function transferTo(address receiver, uint amount) external;
     function getSymbol() external view returns (string);
+    function getBalance(address addr) external view returns (uint);
 }
 
 contract Crowdsale {
@@ -36,16 +37,17 @@ contract Crowdsale {
      * The function without name is the default function that is called whenever anyone funds to a contract
      */
    function () public payable {
+
        require(!crowdsaleClosed);
        uint amount = msg.value;
        balanceOf[msg.sender] += amount;
        tokenBalanceOf[msg.sender] += amount/price;
        amountRaised += amount;
-       tokenReward.transfer(msg.sender, amount / price);
+       tokenReward.transferTo(msg.sender, amount / price);
        emit FundTransfer(msg.sender, amount, true);
    }
 
-   modifier afterDeadline() { if (now >= deadline) _; }
+   modifier afterDeadline() { if (now >= deadline)  _; }
 
    function checkGlobalReached() public afterDeadline {
        if (amountRaised >= fundingGoal) {

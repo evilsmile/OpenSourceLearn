@@ -1,5 +1,6 @@
 // Import the page's CSS. Webpack will know what to do with it.
-import '../styles/app.css'
+import '../styles/token_manager.css'
+import '../styles/buttons.css'
 
 // Import libraries we need.
 import { default as Web3 } from 'web3'
@@ -9,6 +10,8 @@ import coinArtifact from '../../build/contracts/MyAdvancedToken.json'
 
 const Coin = contract(coinArtifact);
 
+let accounts;
+
 const TokenMgr =  {
 
     start : function() {
@@ -17,7 +20,7 @@ const TokenMgr =  {
         let coinIns;
         Coin.deployed().then(function(ins) {
             coinIns = ins;
-            Coin.Transfer().watch(function(err, resp) {
+            coinIns.Transfer().watch(function(err, resp) {
                 if (!err) {
                     console.log("Transfer Resp:", resp.args);
                 } else {
@@ -25,13 +28,28 @@ const TokenMgr =  {
                 }
             });
 
-            Coin.Approve().watch(function(err, resp) {
+            coinIns.Approval().watch(function(err, resp) {
                 if (!err) {
-                    console.log("Approve Resp:", resp.args);
+                    console.log("Approval Resp:", resp.args);
                 } else {
-                    alert("Approve ERRRRR: " + err);
+                    alert("Approval ERRRRR: " + err);
                 }
             });
+        });
+
+        // Get the initial account balance so it can be displayed.
+        web3.eth.getAccounts(function (err, accs) {
+            if (err != null) {
+                alert('There was an error fetching your accounts.')
+            return
+            }
+
+            if (accs.length === 0) {
+                alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.")
+            return
+            }
+
+            accounts = accs;
         });
     },
 
@@ -42,13 +60,36 @@ const TokenMgr =  {
 
         Coin.deployed().then(function(ins) {
             coinIns = ins;
-            var addr = document.getElementById("address").value;
+            var addr = document.getElementById("query_addr").value;
             return coinIns.balanceOf.call(addr);
         }).then(function(val) {
             if (val) {
                 document.getElementById("balance").innerHTML = val.valueOf();
             }
         });
+    },
+
+    transfer: function() {
+        const self = this;
+
+        let coinIns;
+        Coin.deployed().then(function(ins) {
+            coinIns = ins;
+            
+            var fromAddr = document.getElementById("transfer_from_addr").value;
+            var toAddr = document.getElementById("transfer_to_addr").value;
+            var amount = parseInt(document.getElementById("transfer_amt").value);
+
+            if (!fromAddr || !toAddr || !amount) {
+                alert("ERROR: empty input!");
+                return;
+            }
+
+            return coinIns.transfer(fromAddr, toAddr, amount, {from: accounts[0]});
+        }).then(function() {
+            console.log("transfered.");
+        });
+
     },
 
 };

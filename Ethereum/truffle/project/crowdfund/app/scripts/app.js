@@ -1,5 +1,6 @@
 // Import the page's CSS. Webpack will know what to do with it.
 import '../styles/app.css'
+import '../styles/buttons.css'
 
 // Import libraries we need.
 import { default as Web3 } from 'web3'
@@ -130,10 +131,12 @@ const App = {
           tdAcnt.innerHTML = acnt;
           tr.appendChild(tdAcnt);
 
-          var tdBtn = document.createElement('button');
-          tdBtn.textContent = "pay";
-          tdBtn.setAttribute("id", "crowdsale_btn_"+acnt);
-          tdBtn.addEventListener('click', function() {
+          var tdPay = document.createElement('td');
+          var btn = document.createElement('button');
+          btn.textContent = "pay";
+          btn.setAttribute("id", "crowdsale_btn_"+acnt);
+          btn.setAttribute("class", "button button-3d button-action button-circle button-jumbo");
+          btn.addEventListener('click', function() {
 
               self.showOrHideCrowdsale(false);
 
@@ -166,7 +169,8 @@ const App = {
               });
 
           });
-          tr.appendChild(tdBtn);
+          tdPay.appendChild(btn);
+          tr.appendChild(tdPay);
 
           document.getElementById("acnt_bal_tbl").append(tr);
       }
@@ -186,13 +190,14 @@ const App = {
         console.log("sender old bal:", res.toNumber());
     });
 
-    console.log("Get pay sale request[ amount: ", amount, ", sender: ", sender, "] to [", beneficiaryAddr, "]");
+    console.log("Get pay sale request[ amount: ", amount, ", sender: ", sender, "] to [", Crowdsale.address, "]");
 
     Crowdsale.deployed().then(function(instance) {
         return web3.eth.sendTransaction({
             from: sender,
             to: Crowdsale.address,
-            value: amount
+            value: amount,
+            gas: "158575"
         }, function (err, txHash) {
 
             if (!err) {
@@ -201,11 +206,9 @@ const App = {
                 alert("Pay ERRR: " + err);
             }
 
-            web3.eth.getBalance(sender, function(err, res) 
-                {
-                    console.log("sender new bal:", res.toNumber());
-                }
-                );
+            web3.eth.getBalance(sender, function(err, res) {
+                console.log("sender new bal:", res.toNumber());
+            });
         });
     });
 
@@ -238,8 +241,8 @@ const App = {
         self.refreshGoalReached();
         console.log("check succ");
     }).catch(function (e) {
-        console.log(e)
-    })
+        alert("ERROR: " + e);
+    });
   },
 
   refreshBeneficiaryAddr: function() {

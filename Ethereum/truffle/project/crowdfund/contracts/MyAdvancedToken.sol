@@ -13,7 +13,7 @@ contract owned {
     }
 
     function transferOwnerShip(address newOwner) onlyOwner public {
-        require(newOwner != address(0));
+        require (newOwner != address(0), "Empty address!");
         owner = newOwner;
     }
 }
@@ -72,12 +72,6 @@ contract TokenERC20 {
         _transfer(_from, _to, _value);
         return true;
     }
-
-    function freeTransferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
-        _transfer(_from, _to, _value);
-        return true;
-    }
-
 
     function approve(address _spender, uint256 _value) public returns (bool success) {
         allowance[msg.sender][_spender] = _value;
@@ -143,11 +137,11 @@ contract MyAdvancedToken is owned, TokenERC20 {
     }
 
     function _transfer(address _from, address _to, uint _value) internal {
-        require (_to != 0x0);
-        require (balanceOf[_from] >= _value);
-        require (balanceOf[_to] + _value >= balanceOf[_to]);
-        require (!frozenAccounts[_from]);
-        require (!frozenAccounts[_to]);
+        require (_to != 0x0, "Nil address 'To'");
+        require (balanceOf[_from] >= _value, "From-balance not enough!");
+        require (balanceOf[_to] + _value >= balanceOf[_to], "Overflow!");
+        require (!frozenAccounts[_from], "From-Account freezed!");
+        require (!frozenAccounts[_to], "To-Account freezed!");
         balanceOf[_from] -= _value;
         balanceOf[_to] += _value;
         emit Transfer(_from, _to, _value);
