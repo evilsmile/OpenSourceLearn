@@ -98,13 +98,15 @@ func parseKey(hexkey string) (string, bool) {
 
 	header1 := string(toBin([]byte(hexkey[0:2])))
 	if header1 == "h" {
-		if len(hexkey) == 20 {
-			newkey = "h(eaderPrefix)-hash:" + hexkey[2:18] + "-(T)d"
+		if len(hexkey) == 84 {
+			newkey = "h(eaderPrefix)-number:" + hexkey[2:18] + "-hash:" + hexkey[18:82] + "-t(d)"
+		} else if len(hexkey) == 20 {
+			newkey = "h(eaderPrefix)-number:" + hexkey[2:18] + "-n(number)"
 		} else {
-			newkey = "h(eaderPrefix)-number:" + hexkey[2:18] + "-hash:" + hexkey[18:]
+			newkey = "h(eaderPrefix)-number:" + hexkey[2:18] + "-hash:" + hexkey[18:] + "-header data"
 		}
 	} else if header1 == "H" {
-		newkey = "H(eaderNumPrefix)-number:" + hexkey[2:]
+		newkey = "H(eaderNumPrefix)-hash:" + hexkey[2:]
 	} else if header1 == "b" {
 		newkey = "b(lockBodyPrefix)-number:" + hexkey[2:18] + "-hash:" + hexkey[18:]
 	} else if header1 == "r" {
