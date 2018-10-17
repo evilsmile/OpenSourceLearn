@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -14,12 +15,14 @@ var (
 	body_data     string
 	head_data     string
 	receipts_data string
+	txlookup_data string
 )
 
 func init() {
 	flag.StringVar(&body_data, "body", "", "rlp body data")
 	flag.StringVar(&head_data, "head", "", "rlp head data")
 	flag.StringVar(&receipts_data, "receipt", "", "rlp receipt data")
+	flag.StringVar(&txlookup_data, "txlookup", "", "rlp txlookup data")
 }
 
 func _toHex(b byte) byte {
@@ -118,6 +121,15 @@ func parseReceipts(receipts_b []byte) {
 	}
 }
 
+func parseTxLookup(txlookup_b []byte) {
+	var entry rawdb.TxLookupEntry
+	if err := rlp.DecodeBytes(txlookup_b, &entry); err != nil {
+		log.Println("Invalid transaction lookup entry RLP", "err", err)
+		return
+	}
+	fmt.Println(string(toHex(entry.BlockHash.Bytes())), entry.BlockIndex, entry.Index)
+}
+
 func main() {
 	flag.Parse()
 
@@ -131,5 +143,9 @@ func main() {
 
 	if receipts_data != "" {
 		parseReceipts(toBin([]byte(receipts_data)))
+	}
+
+	if txlookup_data != "" {
+		parseTxLookup(toBin([]byte(txlookup_data)))
 	}
 }
