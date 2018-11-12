@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,23 +33,37 @@ func NewEmitter() *Emitter {
 	}
 }
 
+func (e *Emitter) SysNotify(content string) {
+	fmt.Printf("\n**SystemTip**: %s\n", content)
+}
+
 func (e *Emitter) addPeer(p *p2p.Peer, ws p2p.MsgReadWriter) *peer {
 	e.Lock()
 	defer e.Unlock()
 	id := fmt.Sprintf("%x", p.ID().String()[:8])
 	newPeer := NewPeer(p, ws)
 	e.peers[id] = newPeer
-	log.Println("add new peer: ", p.ID().String())
+	e.SysNotify(fmt.Sprintf("add new peer: %s", p.ID().String()))
 	return newPeer
 }
 
 func (e *Emitter) broadcastNewMsg(msg string) {
-	for _, p := range e.peers {
+	var delPeers []string
+	for pid, p := range e.peers {
 		if err := p2p.SendItems(p.ws, msgTalk, msg); err != nil {
 			log.Println("Emitter.loopSendMsg p2p.SendItems err", err, "peer id", p.ID())
+			delPeers = append(delPeers, pid)
 			continue
 		}
 	}
+
+	// clean write-error peers
+	e.Lock()
+	for _, delP := range delPeers {
+		log.Println("delete peer ", delP)
+		delete(e.peers, delP)
+	}
+	e.Unlock()
 }
 
 func (e *Emitter) loop() {
@@ -56,8 +71,18 @@ func (e *Emitter) loop() {
 		select {
 		case msgToSend := <-e.sendMsgCh:
 			now := time.Now().Format(timestamp_format)
-			e.broadcastNewMsg(now + " " + msgToSend)
+			e.broadcastNewMsg(fmt.Sprintf("[%s] %s", now, msgToSend))
 		}
+	}
+}
+
+func (e *Emitter) prettyShow(id, msg string) {
+
+	msgSplit := strings.SplitAfterN(msg, "]", 2)
+	if len(msgSplit) < 2 {
+		fmt.Printf("\nMSG: @%s@ %s\n", id, msg)
+	} else {
+		fmt.Printf("\n%s\n@%s@:\n%s\n", msgSplit[0], id, msgSplit[1])
 	}
 }
 
@@ -68,7 +93,6 @@ func (e *Emitter) msgHandler(peer *p2p.Peer, ws p2p.MsgReadWriter) error {
 		return ErrAddPeer
 	}
 
-	peerID := peer.ID().String()
 	for {
 		msg, err := ws.ReadMsg()
 		if err != nil {
@@ -80,16 +104,9 @@ func (e *Emitter) msgHandler(peer *p2p.Peer, ws p2p.MsgReadWriter) error {
 			var myMessage []string
 			if err := msg.Decode(&myMessage); err != nil {
 				log.Println("decode msg err", err)
-			} else {
-				if currentMode != ChatMode {
-					p.unread = append(p.unread, myMessage[0])
-				} else {
-					for unreadMsg := range p.unread {
-						fmt.Printf("\nmsg from %s:\"%s\"\n", peerID, unreadMsg)
-					}
-					fmt.Printf("\nmsg from %s: \"%s\"\n", peerID, myMessage[0])
-				}
+				continue
 			}
+			e.prettyShow(p.ID().String(), myMessage[0])
 		default:
 			log.Println("unknown msg code:", msg.Code)
 		}

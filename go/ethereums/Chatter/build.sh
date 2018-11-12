@@ -1,3 +1,3 @@
 #!/bin/bash
 
-export GOPATH=$(pwd):$GOPATH  && make
+export GOPATH=/root/go  && make

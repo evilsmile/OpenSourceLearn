@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"fmt"
 	"log"
 	"os"
@@ -14,7 +15,12 @@ import (
 var (
 	port     int
 	bootnode string
+	keyFile  string
+
+	nodeKey *ecdsa.PrivateKey
 )
+
+const ()
 
 func main() {
 	app := cli.NewApp()
@@ -23,6 +29,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.IntFlag{Name: "port", Value: 11200, Usage: "listen port", Destination: &port},
 		cli.StringFlag{Name: "bootnode", Value: "", Usage: "boot node", Destination: &bootnode},
+		cli.StringFlag{Name: "keyfile", Value: "nodekey", Usage: "key file", Destination: &keyFile},
 	}
 
 	if err := app.Run(os.Args); err != nil {
@@ -30,9 +37,27 @@ func main() {
 	}
 }
 
+func getKey() error {
+	var err error
+	nodeKey, err = crypto.LoadECDSA(keyFile)
+	if err == nil {
+		return nil
+	}
+
+	nodeKey, err = crypto.GenerateKey()
+	if err != nil {
+		return err
+	}
+
+	crypto.SaveECDSA(keyFile, nodeKey)
+	return nil
+}
+
 func startP2PNode(c *cli.Context) error {
 	emitter := NewEmitter()
-	nodeKey, _ := crypto.GenerateKey()
+	if err := getKey(); err != nil {
+		return err
+	}
 	node := p2p.Server{
 		Config: p2p.Config{
 			MaxPeers:   100,

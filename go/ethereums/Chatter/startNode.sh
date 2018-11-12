@@ -5,8 +5,10 @@ StartBootCmd="build/bin/bootnode -nodekey=bootnode.key -verbosity=8"
 GetBootKey="build/bin/bootnode -nodekey=bootnode.key -writeaddress"
 
 Port=5435
+NodeKeyFile="nodekey"
 if [ $# -gt 0 ]; then
     Port=$1
+    NodeKeyFile="${NodeKeyFile}.${Port}"
 fi
 
 running=$(ps aux | grep "$StartBootCmd" | grep -v grep | wc -l)
@@ -23,4 +25,4 @@ localaddr=$(ifconfig | grep inet | grep -vw 127| awk '{print $2}')
 
 bootNodeInfo="enode://${pubkey}@${localaddr}:30301"
 echo "Start at [:$Port]. Init connection to '$bootNodeInfo'"
-./chatter -port $Port -bootnode $bootNodeInfo
+./chatter -port $Port -bootnode $bootNodeInfo -keyfile "$NodeKeyFile"

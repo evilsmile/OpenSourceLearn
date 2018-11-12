@@ -6,8 +6,7 @@ import (
 
 type peer struct {
 	*p2p.Peer
-	ws     p2p.MsgReadWriter
-	unread []string
+	ws p2p.MsgReadWriter
 }
 
 func NewPeer(p *p2p.Peer, ws p2p.MsgReadWriter) *peer {

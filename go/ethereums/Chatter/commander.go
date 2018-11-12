@@ -19,9 +19,9 @@ func NewCommander(emitter *Emitter) *Commander {
 func (c *Commander) handleCmd(input string) {
 	switch input {
 	case "list":
-		fmt.Println("============ Peer List ===========")
+		fmt.Printf("\n============ Peer List ===========\n")
 		for _, peer := range c.emitter.peers {
-			fmt.Println(peer.Info().Enode)
+			fmt.Printf("%s : %s\n", peer.Info().ID, peer.Info().Enode)
 		}
 	default:
 		fmt.Println("Support Command: [ list ]")
