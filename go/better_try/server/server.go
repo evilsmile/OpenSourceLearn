@@ -10,6 +10,20 @@ const (
 	PORT = 6555
 )
 
+func handleConnection(conn net.Conn) {
+	defer conn.Close()
+	log.Println("handling....")
+	buffer := make([]byte, 1024)
+	// Read data from connection
+	conn.Read(buffer)
+	fmt.Println(string(buffer))
+
+	log.Printf("received req:%s", buffer)
+
+	conn.Write(buffer)
+	log.Println("handle done.")
+}
+
 func main() {
 	l, err := net.Listen("tcp", "127.0.0.1:6555")
 	if err != nil {
@@ -31,17 +45,4 @@ func main() {
 
 		go handleConnection(conn)
 	}
-}
-
-func handleConnection(conn net.Conn) {
-	log.Println("handling....")
-	buffer := make([]byte, 1024)
-	// Read data from connection
-	conn.Read(buffer)
-	fmt.Println(string(buffer))
-
-	log.Printf("received req:%s", buffer)
-
-	conn.Write(buffer)
-	log.Println("handle done.")
 }
