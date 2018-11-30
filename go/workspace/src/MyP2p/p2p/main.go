@@ -12,13 +12,16 @@ import (
 	"io"
 	"log"
 	mrand "math/rand"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
+	spew "github.com/davecgh/go-spew/spew"
+	mux "github.com/gorilla/mux"
+	godotenv "github.com/joho/godotenv"
 	crypto "gx/ipfs/QmNiJiXwWE3kRhZrC5ej3kSjWHm337pYfhjLGSCDNKJP2s/go-libp2p-crypto"
 	ma "gx/ipfs/QmRKLtwMw131aK7ugC3G7ybpumMz78YrJe5dzneyindvG1/go-multiaddr"
 	net "gx/ipfs/QmRKbEchaYADxSCyyjhDh4cTrUby8ftXUb8MRLBTHQYupw/go-libp2p-net"
@@ -33,7 +36,7 @@ import (
 type Block struct {
 	Index     int
 	Timestamp string
-	BPM       int
+	BPM       int // Beats Per Minitue
 	Hash      string
 	PrevHash  string
 }
@@ -110,7 +113,7 @@ func makeBasicHost(listenPort int, secio bool, randseed int64) (host.Host, error
 
 	if !secio {
 		// bypass encryption
-		//opts = append(opts, libp2p.NoEncryption())
+		//		opts = append(opts, libp2p.NoSecurity)
 	}
 
 	basicHost, err := libp2p.New(context.Background(), opts...)
@@ -237,7 +240,90 @@ func writeData(rw *bufio.ReadWriter) {
 	}
 }
 
+//////// Construct a web server /////////
+func run() error {
+	mux := makeMuxRouter()
+	httpAddr := os.Getenv("ADDR")
+	log.Println("listening on ", os.Getenv("ADDR"))
+	s := &http.Server{
+		Addr:           ":" + httpAddr,
+		Handler:        mux,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	if err := s.ListenAndServe(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func makeMuxRouter() http.Handler {
+	muxRouter := mux.NewRouter()
+	muxRouter.HandleFunc("/", handleGetBlockChain).Methods("GET")
+	muxRouter.HandleFunc("/", handleWriteBlock).Methods("POST")
+
+	return muxRouter
+}
+
+func handleGetBlockChain(w http.ResponseWriter, r *http.Request) {
+	bytes, err := json.MarshalIndent(Blockchain, "", " ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	io.WriteString(w, string(bytes))
+}
+
+type Message struct {
+	BPM int
+}
+
+func handleWriteBlock(w http.ResponseWriter, r *http.Request) {
+	var m Message
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&m); err != nil {
+		respondWithJson(w, r, http.StatusBadRequest, r.Body)
+		return
+	}
+	defer r.Body.Close()
+
+	newBlock := generateBlock(Blockchain[len(Blockchain)-1], m.BPM)
+	if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+		newBlockchain := append(Blockchain, newBlock)
+		replaceChain(newBlockchain)
+		spew.Dump(Blockchain)
+	}
+
+	respondWithJson(w, r, http.StatusCreated, newBlock)
+}
+
+func replaceChain(newBlockchain []Block) {
+	if len(newBlockchain) > len(Blockchain) {
+		Blockchain = newBlockchain
+	}
+}
+
+func respondWithJson(w http.ResponseWriter, r *http.Request, code int, payload interface{}) {
+	response, err := json.MarshalIndent(payload, "", " ")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("HTTP 500: Internal Server Error"))
+		return
+	}
+	w.WriteHeader(code)
+	w.Write(response)
+}
+
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	t := time.Now()
 	genesisBlock := Block{}
 	genesisBlock = Block{0, t.String(), 0, calculateHash(genesisBlock), ""}
@@ -261,6 +347,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go run()
+
 	// 初始节点
 	if *target == "" {
 		log.Println("listening for connections")
@@ -270,7 +358,6 @@ func main() {
 
 		select {} // hang forever
 	} else {
-		// 这里的协议似乎不影响?????
 		ha.SetStreamHandler("/p2p/1.0.0", handleStream)
 
 		ipfsaddr, err := ma.NewMultiaddr(*target)
