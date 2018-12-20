@@ -1,0 +1,25 @@
+{
+    "appenders": {
+        "console": { 
+            "type": "console"
+        }, 
+        "log_file": {
+            "type": "file",
+            "filename": "/tmp/log_file/file.log",
+            "maxLogSize": 104800,
+            "backups": 100
+        },
+        "log_date": {
+            "type": "dateFile",
+            "filename" : "/tmp/log_date/date",
+            "alwasysIncludePattern": true,
+            "pattern" : "-yyyy-MM-dd-hh:mm:ss.log"
+        }
+    },
+    "replaceConsole": true,
+    "categories": {
+        "log_file": { "appenders": [ "log_file"], "level": "ALL"},
+        "log_date": { "appenders": [ "log_date"], "level": "ALL"},
+        "default": { "appenders": [ "console"], "level": "ALL"}
+    }
+}
