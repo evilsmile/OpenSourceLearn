@@ -1,0 +1,1 @@
+gRPC是由google主导开发的RPC框架,使用HTTP/2协议并用ProtoBuf作为序列化工具.其客户端提供Objective-C、Java接口，服务侧有Java、Golang、C++等接口，从而为移动端(iOS/Android)到服务端提供了一种解决方案。当然在当下的环境下，这种解决方案更热门的方式是RESTFull API接口。该方式需要自己去选择编码方式、服务器构架、自己搭建框架(JSON-RPC)。
