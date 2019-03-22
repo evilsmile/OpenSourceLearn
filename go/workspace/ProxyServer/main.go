@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/RequestDispatcher/server"
+	"github.com/ProxyServer/server"
 )
 
 const (
