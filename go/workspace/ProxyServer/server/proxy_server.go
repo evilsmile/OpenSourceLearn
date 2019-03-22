@@ -85,6 +85,6 @@ func (p *ProxyServer) Run() error {
 		}
 		log.Println("Connection from " + conn.RemoteAddr().String())
 		go p.handle(conn, id)
-
+		id++
 	}
 }
