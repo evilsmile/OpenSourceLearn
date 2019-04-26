@@ -1,0 +1,9 @@
+[package]
+name = "minigrep"
+version = "0.1.0"
+authors = ["evilsmile <freedominmind@163.com>"]
+edition = "2018"
+license = "MIT"
+description = "A simple impl of 'grep' based on Rust-tutorial"
+
+[dependencies]
