@@ -1,0 +1,10 @@
+[package]
+name = "recurrence"
+version = "0.1.0"
+authors = ["evilsmile <freedominmind@163.com>"]
+edition = "2018"
+
+[lib]
+name = "recurrence"
+crate-type = ["dylib"]
+plugin = true                        # Tell cargo that it needs to make the compiled crate available to the compiler

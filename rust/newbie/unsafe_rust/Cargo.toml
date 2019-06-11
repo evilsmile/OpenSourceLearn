@@ -1,0 +1,7 @@
+[package]
+name = "unsafe_rust"
+version = "0.1.0"
+authors = ["evilsmile <freedominmind@163.com>"]
+edition = "2018"
+
+[dependencies]

@@ -27,6 +27,17 @@ enum Coin {
     Quarter(UsState),
 }
 
+fn test_while_loop() {
+    let mut stack = Vec::new();
+    stack.push(1);
+    stack.push(2);
+    stack.push(3);
+
+    while let Some(top) = stack.pop() {
+        println!("{}", top);
+    }
+}
+
 fn main() {
     let m = Message::Write(String::from("hello"));
     m.call();
@@ -38,6 +49,8 @@ fn main() {
     let coin = Coin::Quarter(UsState::Alabama);
 
     value_in_coin(coin);
+
+    test_while_loop();
 }
 fn value_in_coin(coin: Coin) -> u8 {
     match coin {
